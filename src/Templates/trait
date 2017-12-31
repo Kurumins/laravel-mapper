@@ -1,0 +1,15 @@
+<?php
+
+namespace {{namespace}};
+
+/**
+ * Trait {{class}}
+ *
+{{properties}}
+ *
+ * @package {{namespace}}
+ */
+trait {{traitName}}
+{
+// we do not need to repeat PHP code in here :-)
+}
