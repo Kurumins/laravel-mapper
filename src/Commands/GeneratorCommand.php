@@ -56,15 +56,15 @@ class GeneratorCommand extends Command
 					if($result === false ) {
 						$this->error("$tableName Failed!");
 					} else {
-						$table->addRow([$tableName, $result['class_name'], $result['path']]);
+						$table->addRow([$tableName, $result['trait_name'], $result['path']]);
 					}
 				} else {
 					$table->addRow([$tableName, '', '-- No model defined --']);
 				}
 
 			}
-			$this->customizer->saveMapFile(config('cst21.path_map'));
-			$this->comment("Class map save at ".config('cst21.path_map'));
+			$this->customizer->saveMapFile(config('mapper.path_map'));
+			$this->comment("Class map save at ".config('mapper.path_map'));
 			$table->render();
             $this->info("Success");
         } catch (\Exception $e) {
