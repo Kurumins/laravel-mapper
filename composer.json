@@ -1,0 +1,40 @@
+{
+    "name": "Kurumins/laravel-mapper",
+    "description": "A DB mapper made to avoid unnecessary coding and to facilitate good practices.",
+    "keywords": ["custom", "getter", "setter", "elationships"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Rubens Silva",
+            "email": "rubens21@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1",
+        "doctrine/dbal": "~2.5",
+        "illuminate/support": "~5.1",
+        "illuminate/database": "~5.1",
+        "illuminate/contracts": "~5.1",
+        "illuminate/console": "~5.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mapper\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "classmap": [
+            "tests/TestCase.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Mapper\\ServiceProvider"
+            ]
+        }
+    }
+}
