@@ -8,7 +8,7 @@
 
 namespace Mapper\Lib;
 
-
+use Mapper\Lib\VirtualFiedls\VirtualField;
 use Mapper\Workers\MapperModel;
 
 class MetaTable
@@ -34,6 +34,11 @@ class MetaTable
 	private $comment;
 
 	/**
+	 * @var array
+	 */
+	private $classMap;
+
+	/**
 	 * @var MetaField[] List of fields found on this table
 	 */
 	private $fields = [];
@@ -51,12 +56,20 @@ class MetaTable
 	const TRAIT_NAME_PREFIX = 'Mapper';
 
 	/**
+	 * This prefix identify which virtual fields on class map are targetting at
+	 * relationships. Otherwise, they would be considered simple fields.
+	 */
+	const TARGET_AT_RELATIONSHIP_PREFIX = 'rel:';
+
+	/**
 	 * MetaClass constructor.
 	 * @param string $tableName
 	 */
-	public function __construct(string $tableName)
+	public function __construct(string $tableName, array $classMap)
 	{
 		$this->table = $tableName;
+		$this->classMap = $classMap;
+
 	}
 
 	/**
@@ -183,6 +196,7 @@ class MetaTable
 		$template = file_get_contents(__DIR__.'/../Templates/trait');
 
 		$template = str_replace('{{namespace}}', $this->getTraitNamespeace(), $template);
+		$template = str_replace('{{uses}}', $this->getNsUseStatement(), $template);
 		$template = str_replace('{{traitName}}', $this->getTraitName(), $template);
 		$template = str_replace('{{properties}}', $this->getProperties(), $template);
 		return $template;
@@ -217,30 +231,49 @@ class MetaTable
 		];
 	}
 
+	private function getRelationShips()
+	{
+		//@todo da pra melhorar isso mescaldno no ooutro metodo
+		$relations = [];
+		foreach ($this->getFields() as $field) {
+			$relDef = $field->getRelationshipDefinition();
+			if($relDef) {
+
+				$relations = array_merge($relations, $relDef);
+			}
+		}
+		return $relations;
+	}
+
 	private function getProperties()
 	{
-		$properties = [];
+		$phpDoc = $simpleFieldsProp = $virtualFieldsProp = [];
 		$longest = 0;
-		foreach ($this->getFields() as $fieldName => $metaField) {
-			if(!in_array($metaField->getPhpAttributeName(), self::IGNORE_SET_ATTRIBUTES)) {
+		foreach ($this->getFields() as $metaField) {
+			$isVirtualField = is_subclass_of($metaField, VirtualField::class);
+			if($isVirtualField || !in_array($metaField->getPhpAttributeName(), self::IGNORE_SET_ATTRIBUTES)) {
 				$set = $metaField->getSetMethodData();
 				if($set) {
 					$longest = strlen($set['type']) > $longest ? strlen($set['type']) : $longest;
-					$properties[] = $set;
+					$isVirtualField ? $virtualFieldsProp[] = $set : $simpleFieldsProp[] = $set;
 				}
 			}
 			$get = $metaField->getGetMethodData();
 			if($get) {
 				$longest = strlen($get['type']) > $longest ? strlen($get['type']) : $longest;
-				$properties[] = $get;
+				$isVirtualField ? $virtualFieldsProp[] = $get : $simpleFieldsProp[] = $get;
 			}
-
 		}
-		$phpDoc = [];
-		foreach ($properties as $property){
+		foreach ($simpleFieldsProp as $property){
 			$phpDoc[] = " * @method ".str_pad($property['type'],$longest, ' ').' '.$property['name'].'('.$property['args'].')';
 		}
-
+		if($virtualFieldsProp) {
+			$phpDoc[] = " * ";
+			$phpDoc[] = " * //Virtual methods created based on foreign keys relationships.";
+		}
+		foreach ($virtualFieldsProp as $property){
+			$phpDoc[] = " * @method ".str_pad($property['type'],$longest, ' ').' '.$property['name'].'('.$property['args'].')';
+		}
 		return implode("\n", $phpDoc);
 	}
 
@@ -249,12 +282,34 @@ class MetaTable
 	 * @param array $classMap
 	 * @return array
 	 */
-	public function getTableMap(array $classMap)
+	public function getTableMap()
 	{
 		$atts = $this->getMethods();
+		$attributes[MapperModel::MAP_RELATIONSHIP] = $this->getRelationShips();
 		$attributes[MapperModel::MAP_SETTERS] = $atts['setters'];
 		$attributes[MapperModel::MAP_GETTERS] = $atts['getters'];
 
 		return $attributes;
 	}
+
+	private function getNsUseStatement()
+	{
+		$use = [];
+		foreach ($this->getNsDependencies() as $classFullName){
+			$use[] = "use  ".$classFullName.";";
+		}
+		return implode("\n", $use);
+	}
+
+	private function getNsDependencies()
+	{
+		$imports = [];
+		foreach ($this->getFields() as $field){
+			if($field->getClassDependencies()) {
+				$imports[$field->getClassDependencies()] = true;
+			}
+		}
+		return array_keys($imports);
+	}
+
 }

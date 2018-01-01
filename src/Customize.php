@@ -2,11 +2,12 @@
 
 namespace Mapper;
 
-use Mapper\Lib\MetaField;
-use Mapper\Lib\MetaTable;
-use Mapper\Workers\MapperModel;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\MySqlConnection;
+use Mapper\Lib\MetaField;
+use Mapper\Lib\MetaTable;
+use Mapper\Lib\VirtualFiedls\VirtualFieldHasOne;
+use Mapper\Workers\MapperModel;
 
 class Customize
 {
@@ -102,7 +103,7 @@ class Customize
         foreach ($tables as $tableName) {
             if(!in_array($tableName, $this->ignoreTableList)) {
                 $this->tables[$tableName] = $this->connection->getDoctrineSchemaManager()->listTableDetails($tableName);
-                $metaTable = new MetaTable($tableName);
+                $metaTable = new MetaTable($tableName, $this->classMap);
 
                 if(isset($this->classMap[$tableName])) {
 					$metaTable->setFullModelName($this->classMap[$tableName]);
@@ -120,7 +121,7 @@ class Customize
         foreach ($tables as $tableName) {
             $metaTable = $this->metaTables[$tableName];
 
-			$specializedField = [];// $this->mapConstrainedFields($tableName);
+			$specializedField = $this->mapConstrainedFields($tableName);
 
 			// simple fields
 			foreach ($this->tables[$tableName]->getColumns() as $col) {
@@ -136,6 +137,63 @@ class Customize
 	{
 		$specializedField = [];
 		$uniqueFields = $this->loadUniqueFields($tableName);
+		$metaTable = $this->metaTables[$tableName];
+		foreach ($this->tables[$tableName]->getForeignKeys() as $fk) {
+			foreach ($fk->getLocalColumns() as $fieldName) {
+//				$specializedField[] = $fieldName;
+				$referenciedMetaTable = $this->metaTables[$fk->getForeignTableName()];
+
+				$doctrineReferredTbl = $this->connection->getDoctrineSchemaManager()->listTableDetails($fk->getForeignTableName());
+				$refericiedCol = $doctrineReferredTbl->getColumn($fk->getForeignColumns()[0]);
+
+				if(in_array($fieldName, $uniqueFields)) {
+					echo "(".$refericiedCol->getName().") -> ". $referenciedMetaTable->getTableName()." -> ($tableName) - $fieldName\n";
+					$metaField = new VirtualFieldHasOne($refericiedCol, $metaTable, $fk);
+
+					if(isset($this->classMap[$metaTable->getTableName()])) {
+						$metaField->setReferredClass($this->classMap[$metaTable->getTableName()]);
+					}
+
+					$specializedField[] = $fieldName;
+					$referenciedMetaTable->addField($metaField);
+//				} else {
+//					$metaAttribute = new MetaAttributeHasMany($refericiedCol, $metaTable, $fk);
+				}
+
+//				$metaTable->addField(new MetaAttributeBelongsTo($this->tables[$tableName]->getColumn($fieldName), $referenciedMetaTable, $fk));
+//				$referenciedMetaTable->addField($metaAttribute);
+			}
+		}
+
+
+
+
+
+
+
+
+
+
+
+//	ClassDbMap (trocar essse nome)
+//	Proximos passos:
+//		+ incluir getters e setters para HasOne no classDbMap
+//		+ incluir php doc (acho que eh feito junto com esse anterior)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		return $specializedField;
 	}
 

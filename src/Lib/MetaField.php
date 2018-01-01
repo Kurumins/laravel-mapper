@@ -54,7 +54,7 @@ class MetaField
         if(!$this->column->getNotnull()) {
             $args .= ' = null';
         }
-        $name = $this->transAttToMethod($this->getFieldName(), self::METHOD_SET_MODE);
+        $name = $this->nameToMethod($this->getFieldName(), self::METHOD_SET_MODE);
         return [
             'type' => '$this',
             'name' => $name,
@@ -67,7 +67,7 @@ class MetaField
 
     public function getGetMethodData()
     {
-        $name = $this->transAttToMethod($this->getFieldName(), self::METHOD_GET_MODE);
+        $name = $this->nameToMethod($this->getFieldName(), self::METHOD_GET_MODE);
         $returnType = $this->getPhpFieldType();
         if(!$this->column->getNotnull()) {
             $returnType .= '|null';
@@ -85,15 +85,15 @@ class MetaField
     /**
      * Translate the name of the attribute to a method name
      *
-     * @param $fieldName
+     * @param $name
      * @return string
      */
-    protected function transAttToMethod($fieldName, $mode)
+    protected function nameToMethod($name, $mode)
     {
-        return $this->getMethodModePrefix($mode) . $this->getRelationshipName($fieldName);
+        return $this->getMethodModePrefix($mode) . $this->formatNameToMethod($name);
     }
 
-    protected function getRelationshipName($fieldName)
+    protected function formatNameToMethod($fieldName)
     {
         return studly_case($fieldName);
     }
@@ -165,7 +165,14 @@ class MetaField
         return Str::camel($this->getFieldName());
     }
 
-    public function getRelationshipDefinition(array $classMap):?array
+    public function getClassDependencies() :?string
+	{
+		if($this->getPhpFieldType() === 'Carbon') {
+			return Carbon::class;
+		} else return null;
+	}
+
+    public function getRelationshipDefinition():?array
     {
         return null;
     }
