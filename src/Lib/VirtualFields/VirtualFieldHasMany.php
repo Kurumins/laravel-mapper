@@ -31,6 +31,7 @@ class VirtualFieldHasMany extends VirtualFieldHasOne
 		return $getData;
 
 	}
+
 	/**
 	 * Translate the name of the attribute to a method name
 	 *

@@ -46,7 +46,7 @@ class VirtualFieldHasOne extends VirtualField
 
 	protected function formatNameToMethod($fieldName)
 	{
-		return Str::singular(parent::formatNameToMethod($this->getFkCol()));
+		return Str::singular(parent::formatNameToMethod($fieldName));
 	}
 
 

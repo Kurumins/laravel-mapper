@@ -78,7 +78,7 @@ class MetaField
             'name' => $name,
             'args' => null,
             'target' => $this->getFieldName(),
-            'nullable' => $this->column->getNotnull()
+            'nullable' => !$this->column->getNotnull()
         ];
     }
 

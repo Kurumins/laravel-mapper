@@ -6,6 +6,7 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\MySqlConnection;
 use Mapper\Lib\MetaField;
 use Mapper\Lib\MetaTable;
+use Mapper\Lib\VirtualFiedls\VirtualFieldBelongsTo;
 use Mapper\Lib\VirtualFiedls\VirtualFieldHasMany;
 use Mapper\Lib\VirtualFiedls\VirtualFieldHasOne;
 use Mapper\Workers\MapperModel;
@@ -156,10 +157,14 @@ class Customize
 					$referenciedMetaTable->addField($metaField);
 				}
 
-
-
-//				$metaTable->addField(new MetaAttributeBelongsTo($this->tables[$tableName]->getColumn($fieldName), $referenciedMetaTable, $fk));
-//				$referenciedMetaTable->addField($metaAttribute);
+				$localCol = $this->tables[$tableName]->getColumn($fieldName);
+				if(isset($this->classMap[$referenciedMetaTable->getTableName()])) {
+					if(in_array($fieldName, $uniqueFields)) {
+						$metaField = new VirtualFieldBelongsTo($localCol, $referenciedMetaTable, $fk);
+						$metaField->setReferredClass($this->classMap[$referenciedMetaTable->getTableName()]);
+						$metaTable->addField($metaField);
+					}
+				}
 			}
 		}
 
