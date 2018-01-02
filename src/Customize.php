@@ -6,6 +6,7 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\MySqlConnection;
 use Mapper\Lib\MetaField;
 use Mapper\Lib\MetaTable;
+use Mapper\Lib\VirtualFiedls\VirtualFieldHasMany;
 use Mapper\Lib\VirtualFiedls\VirtualFieldHasOne;
 use Mapper\Workers\MapperModel;
 
@@ -140,22 +141,22 @@ class Customize
 		$metaTable = $this->metaTables[$tableName];
 		foreach ($this->tables[$tableName]->getForeignKeys() as $fk) {
 			foreach ($fk->getLocalColumns() as $fieldName) {
-//				$specializedField[] = $fieldName;
 				$referenciedMetaTable = $this->metaTables[$fk->getForeignTableName()];
-
 				$doctrineReferredTbl = $this->connection->getDoctrineSchemaManager()->listTableDetails($fk->getForeignTableName());
 				$refericiedCol = $doctrineReferredTbl->getColumn($fk->getForeignColumns()[0]);
 
-				if(in_array($fieldName, $uniqueFields) && isset($this->classMap[$metaTable->getTableName()])) {
-
-
-					$metaField = new VirtualFieldHasOne($refericiedCol, $metaTable, $fk);
-					$metaField->setReferredClass($this->classMap[$metaTable->getTableName()]);
+				if(isset($this->classMap[$metaTable->getTableName()])) {
 					$specializedField[] = $fieldName;
+					if(in_array($fieldName, $uniqueFields)) {
+						$metaField = new VirtualFieldHasOne($refericiedCol, $metaTable, $fk);
+					} else {
+						$metaField = new VirtualFieldHasMany($refericiedCol, $metaTable, $fk);
+					}
+					$metaField->setReferredClass($this->classMap[$metaTable->getTableName()]);
 					$referenciedMetaTable->addField($metaField);
-//				} else {
-//					$metaAttribute = new MetaAttributeHasMany($refericiedCol, $metaTable, $fk);
 				}
+
+
 
 //				$metaTable->addField(new MetaAttributeBelongsTo($this->tables[$tableName]->getColumn($fieldName), $referenciedMetaTable, $fk));
 //				$referenciedMetaTable->addField($metaAttribute);

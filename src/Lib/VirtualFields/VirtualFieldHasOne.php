@@ -42,7 +42,6 @@ class VirtualFieldHasOne extends VirtualField
 		$getData['name'] = $this->nameToMethod($this->getFkCol(), self::PREFIX_GET_METHODS);
 		$getData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX.$this->referredTable->getTableName();
 		return $getData;
-
 	}
 
 	protected function formatNameToMethod($fieldName)
