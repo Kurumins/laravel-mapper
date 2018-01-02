@@ -146,14 +146,11 @@ class Customize
 				$doctrineReferredTbl = $this->connection->getDoctrineSchemaManager()->listTableDetails($fk->getForeignTableName());
 				$refericiedCol = $doctrineReferredTbl->getColumn($fk->getForeignColumns()[0]);
 
-				if(in_array($fieldName, $uniqueFields)) {
-					echo "(".$refericiedCol->getName().") -> ". $referenciedMetaTable->getTableName()." -> ($tableName) - $fieldName\n";
+				if(in_array($fieldName, $uniqueFields) && isset($this->classMap[$metaTable->getTableName()])) {
+
+
 					$metaField = new VirtualFieldHasOne($refericiedCol, $metaTable, $fk);
-
-					if(isset($this->classMap[$metaTable->getTableName()])) {
-						$metaField->setReferredClass($this->classMap[$metaTable->getTableName()]);
-					}
-
+					$metaField->setReferredClass($this->classMap[$metaTable->getTableName()]);
 					$specializedField[] = $fieldName;
 					$referenciedMetaTable->addField($metaField);
 //				} else {

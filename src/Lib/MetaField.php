@@ -14,9 +14,9 @@ class MetaField
      */
     private $column;
 
-    const METHOD_SET_MODE = 'set';
+    const PREFIX_SET_METHODS = 'set';
 
-    const METHOD_GET_MODE = 'get';
+    const PREFIX_GET_METHODS = 'get';
 
     /**
      * MetaAttribute constructor.
@@ -54,7 +54,7 @@ class MetaField
         if(!$this->column->getNotnull()) {
             $args .= ' = null';
         }
-        $name = $this->nameToMethod($this->getFieldName(), self::METHOD_SET_MODE);
+        $name = $this->nameToMethod($this->getFieldName(), self::PREFIX_SET_METHODS);
         return [
             'type' => '$this',
             'name' => $name,
@@ -67,7 +67,7 @@ class MetaField
 
     public function getGetMethodData()
     {
-        $name = $this->nameToMethod($this->getFieldName(), self::METHOD_GET_MODE);
+        $name = $this->nameToMethod($this->getFieldName(), self::PREFIX_GET_METHODS);
         $returnType = $this->getPhpFieldType();
         if(!$this->column->getNotnull()) {
             $returnType .= '|null';
@@ -100,7 +100,7 @@ class MetaField
 
     protected function getMethodModePrefix($mode)
     {
-        if($mode === self::METHOD_GET_MODE) {
+        if($mode === self::PREFIX_GET_METHODS) {
 			/**
 			 * @todo turn it customizable
 			 */

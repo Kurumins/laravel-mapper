@@ -222,4 +222,14 @@ abstract class MapperModel extends Model
 			return str_replace('\\', '', Str::snake(Str::plural(class_basename(static::class))));
 		}
 	}
+
+	public static function defineRelMethodName(string $fieldName)
+	{
+		$pattern = config('mapper.fk_field_pattern');
+		if(!preg_match($pattern, $fieldName, $matche)) {
+			throw new \Exception('Foreign field '.$fieldName.' does not match with your default pattern: '.$pattern);
+		} else {
+			return Str::studly($matche['field'] ?? $matche[0]);
+		}
+	}
 }
