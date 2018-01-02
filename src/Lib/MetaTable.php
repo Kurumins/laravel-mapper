@@ -212,7 +212,7 @@ class MetaTable
 		$getters = [];
 
 		foreach ($this->getFields() as $fieldName => $metaField) {
-			if(!in_array($metaField->getPhpAttributeName(), self::IGNORE_SET_ATTRIBUTES)) {
+			if($this->isFieldAllowedToSet($metaField)) {
 				$set = $metaField->getSetMethodData();
 				if($set) {
 					$setters[$set['name']] = $set['target'];
@@ -245,13 +245,19 @@ class MetaTable
 		return $relations;
 	}
 
+	private function isFieldAllowedToSet(MetaField $metaField)
+	{
+		$isVirtualField = is_subclass_of($metaField, VirtualField::class);
+		return !in_array($metaField->getPhpAttributeName(), self::IGNORE_SET_ATTRIBUTES) || $isVirtualField;
+	}
+
 	private function getProperties()
 	{
 		$phpDoc = $simpleFieldsProp = $virtualFieldsProp = [];
 		$longest = 0;
 		foreach ($this->getFields() as $metaField) {
 			$isVirtualField = is_subclass_of($metaField, VirtualField::class);
-			if($isVirtualField || !in_array($metaField->getPhpAttributeName(), self::IGNORE_SET_ATTRIBUTES)) {
+			if($this->isFieldAllowedToSet($metaField)) {
 				$set = $metaField->getSetMethodData();
 				if($set) {
 					$longest = strlen($set['type']) > $longest ? strlen($set['type']) : $longest;

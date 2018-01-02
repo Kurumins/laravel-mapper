@@ -23,12 +23,13 @@ class VirtualFieldHasOne extends VirtualField
 	public function getSetMethodData()
 	{
 		$setData = parent::getSetMethodData();
+		$arg = $this->formatNameToMethod($this->getFkCol());
 		if($this->hasReferClass()) {
 			$model = $this->getReferredClassName();
-			$setData['args'] = $model.' $'.$model;
+			$setData['args'] = $model.' $'.$arg;
 		}
-		// @todo Esse nome tem que ser baseado em outra coisa, pode haver dois campos aponranto para aqui
-		$setData['name'] = $this->nameToMethod($this->referredTable->getTableName(), self::PREFIX_SET_METHODS);
+		$setData['name'] = $this->nameToMethod($this->getFkCol(), self::PREFIX_SET_METHODS);
+		$setData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX.$this->referredTable->getTableName();
 		return $setData;
 	}
 
@@ -38,7 +39,7 @@ class VirtualFieldHasOne extends VirtualField
 		if($this->hasReferClass()) {
 			$getData['type'] = $this->getReferredClassName().'|null';
 		}
-		$getData['name'] = $this->nameToMethod($this->referredTable->getTableName(), self::PREFIX_GET_METHODS);
+		$getData['name'] = $this->nameToMethod($this->getFkCol(), self::PREFIX_GET_METHODS);
 		$getData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX.$this->referredTable->getTableName();
 		return $getData;
 
