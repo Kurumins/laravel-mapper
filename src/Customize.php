@@ -140,9 +140,46 @@ class Customize
 		$specializedField = [];
 		$uniqueFields = $this->loadUniqueFields($tableName);
 		$metaTable = $this->metaTables[$tableName];
+		$relationships = [];
 		foreach ($this->tables[$tableName]->getForeignKeys() as $fk) {
 			foreach ($fk->getLocalColumns() as $fieldName) {
+
 				$referenciedMetaTable = $this->metaTables[$fk->getForeignTableName()];
+
+				/**
+				 * @todo Separar a lógica desse método em 3 submethodos
+				 * @todo documentar a justificativa para ter um nome personlizado para a relação e pq isso só é necessário
+				 * na tabela estrangeira da relação.
+				 *
+				 * Explicação básica: A tabela alvo da relação geralmente se refere à outra tabela pelo nome, ex.:
+				 * User -> posts
+				 * getPost()/setPost, ou addPost/listPosts
+				 *
+				 * porém, quando essa tabela é referenciada duas vezes, ela nao tem como saber qual sua relação.
+				 * No caso acima, o usuário pode ser o author ou revisor.
+				 * Do ponto de vista da tabela post é fácil resolver usando o nome do campo (ex.: author_id e reviewer_id)
+				 * mas do ponto de vista da user nao.
+				 * Entao a classe é obrigada a defnir esses nomes quando a tabela a qual ela se refere possui duas relaçoes.
+				 */
+
+				if(isset($this->classMap[$referenciedMetaTable->getTableName()])) {
+					/** @var MapperModel $referredModel */
+					$referredModel = $this->classMap[$referenciedMetaTable->getTableName()];
+					$relName = $referredModel::relNameByField($tableName, $fieldName);
+					if(isset($relationships[$referenciedMetaTable->getTableName()]) && is_null($relName)) {
+						$ref = $referenciedMetaTable->getTableName();
+						$err = 'The table `'.$tableName.'` has more than one FK to `'.$ref.'`, the class';
+						$err .= $referredModel.' must define each relationship name. See '.MapperModel::class.'::relNameByField() method';
+						throw new \Exception($err);
+					}
+				} else {
+					$relName = null;
+				}
+
+				$relationships[$referenciedMetaTable->getTableName()][$fieldName] = $relName;
+
+
+
 				$doctrineReferredTbl = $this->connection->getDoctrineSchemaManager()->listTableDetails($fk->getForeignTableName());
 				$refericiedCol = $doctrineReferredTbl->getColumn($fk->getForeignColumns()[0]);
 
@@ -153,7 +190,7 @@ class Customize
 					} else {
 						$metaField = new VirtualFieldHasMany($refericiedCol, $metaTable, $fk);
 					}
-					$metaField->setReferredClass($this->classMap[$metaTable->getTableName()]);
+					$metaField->setReferredClass($this->classMap[$metaTable->getTableName()], $relationships[$referenciedMetaTable->getTableName()][$fieldName]);
 					$referenciedMetaTable->addField($metaField);
 				}
 

@@ -26,6 +26,12 @@ abstract class VirtualField extends  MetaField
 	 */
 	protected $referredClass;
 
+
+	/**
+	 * @var string Custom relationshipt name forced by the model for some reason (e.g. multiple FKs)
+	 */
+	protected $customRelName;
+
 	/**
 	 * @var Fk
 	 */
@@ -42,9 +48,10 @@ abstract class VirtualField extends  MetaField
 	 * @param string $fullClassName
 	 * @return VirtualField
 	 */
-	public function setReferredClass(string $fullClassName) :self
+	public function setReferredClass(string $fullClassName, ?string $customRelName = null) :self
 	{
 		$this->referredClass = $fullClassName;
+		$this->customRelName = $customRelName;
 		return $this;
 	}
 

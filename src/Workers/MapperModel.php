@@ -232,4 +232,9 @@ abstract class MapperModel extends Model
 			return Str::studly($matche['field'] ?? $matche[0]);
 		}
 	}
+
+	public static function relNameByField($tableName, $fieldName)
+	{
+		return null;
+	}
 }
