@@ -2,6 +2,7 @@
 
 namespace Mapper;
 
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\MySqlConnection;
 use Mapper\Lib\MetaField;
@@ -35,6 +36,7 @@ class Customize
      */
     private $tables = [];
 
+    private $customRelNames = [];
 
     private $config = [
         'path' => './',
@@ -132,7 +134,6 @@ class Customize
 				}
 			}
         }
-
     }
 
 	private function mapConstrainedFields($tableName) : array
@@ -140,67 +141,27 @@ class Customize
 		$specializedField = [];
 		$uniqueFields = $this->loadUniqueFields($tableName);
 		$metaTable = $this->metaTables[$tableName];
-		$relationships = [];
+		$this->customRelNames = [];
 		foreach ($this->tables[$tableName]->getForeignKeys() as $fk) {
 			foreach ($fk->getLocalColumns() as $fieldName) {
+				$referencedMetaTable = $this->metaTables[$fk->getForeignTableName()];
+				$referencedModelName = $this->classMap[$referencedMetaTable->getTableName()] ?? null;
 
-				$referenciedMetaTable = $this->metaTables[$fk->getForeignTableName()];
-
-				/**
-				 * @todo Separar a lógica desse método em 3 submethodos
-				 * @todo documentar a justificativa para ter um nome personlizado para a relação e pq isso só é necessário
-				 * na tabela estrangeira da relação.
-				 *
-				 * Explicação básica: A tabela alvo da relação geralmente se refere à outra tabela pelo nome, ex.:
-				 * User -> posts
-				 * getPost()/setPost, ou addPost/listPosts
-				 *
-				 * porém, quando essa tabela é referenciada duas vezes, ela nao tem como saber qual sua relação.
-				 * No caso acima, o usuário pode ser o author ou revisor.
-				 * Do ponto de vista da tabela post é fácil resolver usando o nome do campo (ex.: author_id e reviewer_id)
-				 * mas do ponto de vista da user nao.
-				 * Entao a classe é obrigada a defnir esses nomes quando a tabela a qual ela se refere possui duas relaçoes.
-				 */
-
-				if(isset($this->classMap[$referenciedMetaTable->getTableName()])) {
-					/** @var MapperModel $referredModel */
-					$referredModel = $this->classMap[$referenciedMetaTable->getTableName()];
-					$relName = $referredModel::relNameByField($tableName, $fieldName);
-					if(isset($relationships[$referenciedMetaTable->getTableName()]) && is_null($relName)) {
-						$ref = $referenciedMetaTable->getTableName();
-						$err = 'The table `'.$tableName.'` has more than one FK to `'.$ref.'`, the class';
-						$err .= $referredModel.' must define each relationship name. See '.MapperModel::class.'::relNameByField() method';
-						throw new \Exception($err);
-					}
-				} else {
-					$relName = null;
+				$relName = $this->searchForCustomRelNames($tableName, $fieldName, $referencedMetaTable);
+				if(isset($this->customRelNames[$referencedMetaTable->getTableName()]) && is_null($relName)) {
+					$ref = $referencedMetaTable->getTableName();
+					$err = 'The table `'.$tableName.'` has more than one FK to `'.$ref.'`, the class ';
+					$err .= $referencedModelName.' must define each relationship name. See '.MapperModel::class.'::relNameByField() method';
+					throw new \Exception($err);
 				}
-
-				$relationships[$referenciedMetaTable->getTableName()][$fieldName] = $relName;
-
-
-
-				$doctrineReferredTbl = $this->connection->getDoctrineSchemaManager()->listTableDetails($fk->getForeignTableName());
-				$refericiedCol = $doctrineReferredTbl->getColumn($fk->getForeignColumns()[0]);
+				$this->customRelNames[$referencedMetaTable->getTableName()][$fieldName] = $relName;
 
 				if(isset($this->classMap[$metaTable->getTableName()])) {
 					$specializedField[] = $fieldName;
-					if(in_array($fieldName, $uniqueFields)) {
-						$metaField = new VirtualFieldHasOne($refericiedCol, $metaTable, $fk);
-					} else {
-						$metaField = new VirtualFieldHasMany($refericiedCol, $metaTable, $fk);
-					}
-					$metaField->setReferredClass($this->classMap[$metaTable->getTableName()], $relationships[$referenciedMetaTable->getTableName()][$fieldName]);
-					$referenciedMetaTable->addField($metaField);
+					$this->addLocalVirtualField($metaTable, $fieldName, $fk, in_array($fieldName, $uniqueFields));
 				}
-
-				$localCol = $this->tables[$tableName]->getColumn($fieldName);
-				if(isset($this->classMap[$referenciedMetaTable->getTableName()])) {
-					if(in_array($fieldName, $uniqueFields)) {
-						$metaField = new VirtualFieldBelongsTo($localCol, $referenciedMetaTable, $fk);
-						$metaField->setReferredClass($this->classMap[$referenciedMetaTable->getTableName()]);
-						$metaTable->addField($metaField);
-					}
+				if($referencedModelName) {
+					$this->addReferVirtualField($metaTable, $fieldName, $fk, in_array($fieldName, $uniqueFields));
 				}
 			}
 		}
@@ -328,6 +289,56 @@ class Customize
 			}
 		}
 		return substr($originalClassName, 0, strrpos($originalClassName, '\\'));
+	}
+
+	/**
+	 * This method search for custom relationship names. All
+	 * @param string $tableName
+	 * @param string $fieldName
+	 * @param MetaTable $referencedMetaTable
+	 * @throws \Exception
+	 */
+	private function searchForCustomRelNames(string  $tableName, string $fieldName, MetaTable $referencedMetaTable)
+	{
+		if(isset($this->classMap[$referencedMetaTable->getTableName()])) {
+			/** @var MapperModel $referredModel */
+			$referredModel = $this->classMap[$referencedMetaTable->getTableName()];
+			$relName = $referredModel::relNameByField($tableName, $fieldName);
+		} else {
+			$relName = null;
+		}
+		return $relName;
+//		$this->customRelNames[$referenciedMetaTable->getTableName()][$fieldName] = $relName;
+	}
+
+
+	private function addLocalVirtualField(MetaTable $metaTable, string $fieldName, ForeignKeyConstraint $fk, bool $isUnique)
+	{
+		$doctrineReferredTbl = $this->connection->getDoctrineSchemaManager()->listTableDetails($fk->getForeignTableName());
+		$refericiedCol = $doctrineReferredTbl->getColumn($fk->getForeignColumns()[0]);
+		$referencedMetaTable = $this->metaTables[$fk->getForeignTableName()];
+
+		if($isUnique) {
+			$metaField = new VirtualFieldHasOne($refericiedCol, $metaTable, $fk);
+		} else {
+			$metaField = new VirtualFieldHasMany($refericiedCol, $metaTable, $fk);
+		}
+		$metaField->setReferredClass($this->classMap[$metaTable->getTableName()], $this->customRelNames[$referencedMetaTable->getTableName()][$fieldName]);
+		$referencedMetaTable->addField($metaField);
+	}
+
+	private function addReferVirtualField(MetaTable $metaTable, $fieldName, ForeignKeyConstraint $fk, bool $isUnique)
+	{
+		$tableName = $metaTable->getTableName();
+		$localCol = $this->tables[$tableName]->getColumn($fieldName);
+		$referencedMetaTable = $this->metaTables[$fk->getForeignTableName()];
+		$referencedModelName = $this->classMap[$referencedMetaTable->getTableName()];
+		if($isUnique) {
+			$metaField = new VirtualFieldBelongsTo($localCol, $referencedMetaTable, $fk);
+			$metaField->setReferredClass($referencedModelName);
+			$metaTable->addField($metaField);
+		}
+		// @todo Belongs to many
 	}
 
 }
