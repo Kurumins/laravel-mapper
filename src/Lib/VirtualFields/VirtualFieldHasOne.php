@@ -29,7 +29,6 @@ class VirtualFieldHasOne extends VirtualField
 			$setData['args'] = $model.' $'.$arg;
 		}
 		$setData['name'] = $this->nameToMethod($this->getFkCol(), self::PREFIX_SET_METHODS);
-		$setData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX.$this->referredTable->getTableName();
 		return $setData;
 	}
 
@@ -40,7 +39,6 @@ class VirtualFieldHasOne extends VirtualField
 			$getData['type'] = $this->getReferredClassName().'|null';
 		}
 		$getData['name'] = $this->nameToMethod($this->getFkCol(), self::PREFIX_GET_METHODS);
-		$getData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX.$this->referredTable->getTableName();
 		return $getData;
 	}
 

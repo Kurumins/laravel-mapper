@@ -95,7 +95,7 @@ class MetaField
 
     protected function formatNameToMethod($fieldName)
     {
-        return $this->customRelName ?? studly_case($fieldName);
+        return studly_case($fieldName);
     }
 
     protected function getMethodModePrefix($mode)
