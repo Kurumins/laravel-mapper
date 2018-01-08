@@ -128,7 +128,12 @@ abstract class VirtualField extends  MetaField
 			} else {
 				/** @var MapperModel $className */
 				$className = $this->getReferredClass();
-				$fieldName = $className::defineRelMethodName($fieldName);
+				try{
+                    $fieldName = $className::defineRelMethodName($fieldName);
+                }catch (\Exception $e) {
+				    dd($this);
+                }
+
 			}
 		} else
 			return null;

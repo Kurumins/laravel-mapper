@@ -44,6 +44,11 @@ class VirtualFieldHasOne extends VirtualField
 
 	protected function formatNameToMethod($fieldName)
 	{
+
+	    Para o Hasone/hasmany seria melhor achar um jeito de usar a logica imposta pela classe model
+    do mesmo jeito, mas adicionando mais um item naquele array monstros
+
+	    echo "\n\nO Pau eh, o que faco com isso? $fieldName";NBA>smnbvc
 		return Str::singular(parent::formatNameToMethod($fieldName));
 	}
 

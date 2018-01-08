@@ -51,11 +51,13 @@ class ServiceProvider extends SP
      */
     protected function registerModelFactory()
     {
-        $this->app->singleton(Customize::class, function ($app) {
-            return new Customize(
-                $app->make('db'), config('mapper')
-            );
-        });
+        if(config('mapper')) {
+            $this->app->singleton(Customize::class, function ($app) {
+                return new Customize(
+                    $app->make('db'), config('mapper')
+                );
+            });
+        }
     }
 
     /**

@@ -142,13 +142,16 @@ class Customize
 		$uniqueFields = $this->loadUniqueFields($tableName);
 		$metaTable = $this->metaTables[$tableName];
 		$this->customRelNames = [];
+
 		foreach ($this->tables[$tableName]->getForeignKeys() as $fk) {
 			foreach ($fk->getLocalColumns() as $fieldName) {
 				$referencedMetaTable = $this->metaTables[$fk->getForeignTableName()];
 				$referencedModelName = $this->classMap[$referencedMetaTable->getTableName()] ?? null;
+				$modelName = $this->classMap[$metaTable->getTableName()] ?? null;
 
 				$relName = $this->searchForCustomRelNames($tableName, $fieldName, $referencedMetaTable);
-				if(isset($this->customRelNames[$referencedMetaTable->getTableName()]) && is_null($relName)) {
+				if($modelName && isset
+                ($this->customRelNames[$referencedMetaTable->getTableName()]) && is_null($relName)) {
 					$ref = $referencedMetaTable->getTableName();
 					$err = 'The table `'.$tableName.'` has more than one FK to `'.$ref.'`, the class ';
 					$err .= $referencedModelName.' must define each relationship name. See '.MapperModel::class.'::relNameByField() method';
@@ -156,7 +159,7 @@ class Customize
 				}
 				$this->customRelNames[$referencedMetaTable->getTableName()][$fieldName] = $relName;
 
-				if(isset($this->classMap[$metaTable->getTableName()])) {
+				if($modelName) {
 					$specializedField[] = $fieldName;
 					$this->addLocalVirtualField($metaTable, $fieldName, $fk, in_array($fieldName, $uniqueFields));
 				}
@@ -317,7 +320,8 @@ class Customize
 		$doctrineReferredTbl = $this->connection->getDoctrineSchemaManager()->listTableDetails($fk->getForeignTableName());
 		$refericiedCol = $doctrineReferredTbl->getColumn($fk->getForeignColumns()[0]);
 		$referencedMetaTable = $this->metaTables[$fk->getForeignTableName()];
-
+		echo "\n\n".$metaTable->getTableName()." ($fieldName) => ".$referencedMetaTable->getTableName()." = "
+            .$refericiedCol->getName();
 		if($isUnique) {
 			$metaField = new VirtualFieldHasOne($refericiedCol, $metaTable, $fk);
 		} else {

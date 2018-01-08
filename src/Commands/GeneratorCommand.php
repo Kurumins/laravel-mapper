@@ -47,6 +47,7 @@ class GeneratorCommand extends Command
         try{
             $this->comment("Generating models in ".config('mapper.path'));
             $this->customizer->map();
+            echo "\n\n\n---ARRRRMAIR.";
             $this->comment("Db mapped");
 			$table = new Table($this->output);
 			$table->setHeaders(['Table', 'Trait', 'Path']);

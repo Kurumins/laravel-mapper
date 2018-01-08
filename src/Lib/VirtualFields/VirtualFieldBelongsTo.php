@@ -44,4 +44,9 @@ class VirtualFieldBelongsTo extends VirtualFieldHasOne
 		return $getData;
 	}
 
+    protected function formatNameToMethod($fieldName)
+    {
+        return Str::singular(VirtualField::formatNameToMethod($fieldName));
+    }
+
 }

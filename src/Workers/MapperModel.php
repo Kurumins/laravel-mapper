@@ -223,11 +223,22 @@ abstract class MapperModel extends Model
 		}
 	}
 
+    /**
+     * @todo Bug fix: this logic only works from the perspective of a belongsTo because the $fieldName is a
+     * foreign key, such as user_id. But it does not works in hasOne/hasMany because the
+     * $fieldName may be a ID, or other value without reference.
+     *
+     * @param string $fieldName
+     * @return string
+     * @throws \Exception
+     */
 	public static function defineRelMethodName(string $fieldName)
 	{
 		$pattern = config('mapper.fk_field_pattern');
 		if(!preg_match($pattern, $fieldName, $matche)) {
-			throw new \Exception('Foreign field '.$fieldName.' does not match with your default pattern: '.$pattern);
+		    dd(debug_backtrace());
+			throw new \Exception('Foreign field '.$fieldName.'.`'.static::getStaticTable().'` does not match with your 
+			default pattern: '.$pattern);
 		} else {
 			return Str::studly($matche['field'] ?? $matche[0]);
 		}
