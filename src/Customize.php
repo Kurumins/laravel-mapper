@@ -204,48 +204,9 @@ class Customize
 				}
 			}
 		}
-
-
-
-
-
-
-
-
-
-
-
-//	ClassDbMap (trocar essse nome)
-//	Proximos passos:
-//		+ incluir getters e setters para HasOne no classDbMap
-//		+ incluir php doc (acho que eh feito junto com esse anterior)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		return $specializedField;
 	}
 
-
-//    public function saveFiles($defaultNSDir, $mapPath)
-//    {
-//        foreach ($this->getClasses() as $tableName => $metaClass){
-//            $this->saveClassFile($tableName, $defaultNSDir);
-//        }
-//        $this->saveMapFile($mapPath);
-//    }
-//
     public function saveTraitFile($tableName, $defaultNSDir)
 	{
 		$metaTables = $this->getMetaTables();
