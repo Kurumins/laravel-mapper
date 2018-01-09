@@ -70,6 +70,7 @@ class GeneratorCommand extends Command
             $this->info("Success");
         } catch (\Exception $e) {
             $this->error("Sorry: ".$e->getMessage());
+            $this->error($e->getFile().':'.$e->getLine());
         }
     }
 

@@ -21,6 +21,10 @@ class VirtualFieldHasOne extends VirtualField
 		return $this->relatedFK->getLocalColumns()[0];
 	}
 
+    /**
+     * @return array
+     * @throws \Exception
+     */
 	public function getSetMethodData()
 	{
 		$setData = parent::getSetMethodData();
@@ -33,6 +37,10 @@ class VirtualFieldHasOne extends VirtualField
 		return $setData;
 	}
 
+    /**
+     * @return array
+     * @throws \Exception
+     */
 	public function getGetMethodData()
 	{
 		$getData = parent::getGetMethodData();
