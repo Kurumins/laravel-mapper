@@ -124,6 +124,19 @@ abstract class VirtualField extends  MetaField
 			return null;
 	}
 
+    /**
+     * Translate the name of the attribute to a method name
+     *
+     * @param $mode
+     * @return string
+     * @throws \Exception
+     */
+    protected function makeAMethodName($mode)
+    {
+        $name = $this->getRelationshipName();
+        return $this->getMethodModePrefix($mode) . static::formatNameToMethod($name);
+    }
+
 //	protected static function formatNameToMethod($name)
 //	{
 //		if($this->hasReferClass()) {

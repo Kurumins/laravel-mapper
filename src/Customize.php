@@ -163,9 +163,9 @@ class Customize
 					$specializedField[] = $fieldName;
 					$this->addLocalVirtualField($metaTable, $fieldName, $fk, in_array($fieldName, $uniqueFields));
 				}
-//				if($referencedModelName) {
-//					$this->addReferVirtualField($metaTable, $fieldName, $fk, in_array($fieldName, $uniqueFields));
-//				}
+				if($referencedModelName) {
+					$this->addReferVirtualField($metaTable, $fieldName, $fk);
+				}
 			}
 		}
 		return $specializedField;
@@ -329,17 +329,15 @@ class Customize
         $referencedMetaTable->addField($metaField);
 	}
 
-	private function addReferVirtualField(MetaTable $metaTable, $fieldName, ForeignKeyConstraint $fk, bool $isUnique)
+	private function addReferVirtualField(MetaTable $metaTable, $fieldName, ForeignKeyConstraint $fk)
 	{
 		$tableName = $metaTable->getTableName();
 		$localCol = $this->tables[$tableName]->getColumn($fieldName);
 		$referencedMetaTable = $this->metaTables[$fk->getForeignTableName()];
 		$referencedModelName = $this->classMap[$referencedMetaTable->getTableName()];
-		if($isUnique) {
-			$metaField = new VirtualFieldBelongsTo($localCol, $referencedMetaTable, $fk);
-			$metaField->setReferredClass($referencedModelName);
-			$metaTable->addField($metaField);
-		}
+        $metaField = new VirtualFieldBelongsTo($localCol, $referencedMetaTable, $fk);
+        $metaField->setReferredClass($referencedModelName);
+        $metaTable->addField($metaField);
 		// @todo Belongs to many
 	}
 

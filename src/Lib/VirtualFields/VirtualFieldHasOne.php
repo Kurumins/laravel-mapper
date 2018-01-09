@@ -57,19 +57,6 @@ class VirtualFieldHasOne extends VirtualField
 	}
 
     /**
-     * Translate the name of the attribute to a method name
-     *
-     * @param $mode
-     * @return string
-     * @throws \Exception
-     */
-    protected function makeAMethodName($mode)
-    {
-        $name = $this->getRelationshipName();
-        return $this->getMethodModePrefix($mode) . static::formatNameToMethod($name);
-    }
-
-    /**
      * @return string
      * @throws \Exception
      */
