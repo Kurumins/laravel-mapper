@@ -32,15 +32,16 @@ class VirtualFieldHasMany extends VirtualFieldHasOne
 
 	}
 
-	/**
-	 * Translate the name of the attribute to a method name
-	 *
-	 * @param $name
-	 * @return string
-	 */
-	protected function nameToMethod($name, $mode)
+    /**
+     * Translate the name of the attribute to a method name
+     *
+     * @param $name
+     * @return string
+     * @throws \Exception
+     */
+	protected function makeAMethodName($mode)
 	{
-		$name = $this->formatNameToMethod($name);
+		$name = $this->getRelationshipName();
 		if($mode === self::PREFIX_GET_METHODS) {
 			$name = Str::plural($name);
 		}

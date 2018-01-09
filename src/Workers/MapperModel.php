@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Mapper\BadMappingException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Mapper\Lib\VirtualFiedls\VirtualField;
 use ReflectionClass;
 
 /**
@@ -232,16 +233,26 @@ abstract class MapperModel extends Model
      * @return string
      * @throws \Exception
      */
-	public static function defineRelMethodName(string $fieldName)
+	public static function formatRelationshipName(string $relName, string $relType)
 	{
-		$pattern = config('mapper.fk_field_pattern');
-		if(!preg_match($pattern, $fieldName, $matche)) {
-		    dd(debug_backtrace());
-			throw new \Exception('Foreign field '.$fieldName.'.`'.static::getStaticTable().'` does not match with your 
-			default pattern: '.$pattern);
-		} else {
-			return Str::studly($matche['field'] ?? $matche[0]);
-		}
+		switch ($relType)
+        {
+            case 'hasOne':
+            case 'hasMany':
+                return $relName;
+                break;
+            case 'belongsTo':
+            case 'belongsToMany':
+                $pattern = config('mapper.fk_field_pattern');
+                if(!preg_match($pattern, $relName, $matche)) {
+                    throw new \Exception('Foreign field '.$relName.'.`'.static::getStaticTable().'` does not match with your 
+                default pattern: '.$pattern);
+                } else {
+                    return Str::studly($matche['field'] ?? $matche[0]);
+                }
+            default:
+                throw new \Exception('unkown relationship type: '.$relType);
+        }
 	}
 
 	public static function relNameByField($tableName, $fieldName)

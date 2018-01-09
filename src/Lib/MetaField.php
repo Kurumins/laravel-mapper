@@ -54,7 +54,7 @@ class MetaField
         if(!$this->column->getNotnull()) {
             $args .= ' = null';
         }
-        $name = $this->nameToMethod($this->getFieldName(), self::PREFIX_SET_METHODS);
+        $name = $this->makeAMethodName(self::PREFIX_SET_METHODS);
         return [
             'type' => '$this',
             'name' => $name,
@@ -64,10 +64,9 @@ class MetaField
         ];
     }
 
-
     public function getGetMethodData()
     {
-        $name = $this->nameToMethod($this->getFieldName(), self::PREFIX_GET_METHODS);
+        $name = $this->makeAMethodName(self::PREFIX_GET_METHODS);
         $returnType = $this->getPhpFieldType();
         if(!$this->column->getNotnull()) {
             $returnType .= '|null';
@@ -85,17 +84,17 @@ class MetaField
     /**
      * Translate the name of the attribute to a method name
      *
-     * @param $name
+     * @param $mode
      * @return string
      */
-    protected function nameToMethod($name, $mode)
+    protected function makeAMethodName($mode)
     {
-        return $this->getMethodModePrefix($mode) . $this->formatNameToMethod($name);
+        return $this->getMethodModePrefix($mode) . static::formatNameToMethod($this->getFieldName());
     }
 
-    protected function formatNameToMethod($fieldName)
+    protected static function formatNameToMethod(string $name)
     {
-        return studly_case($fieldName);
+        return studly_case($name);
     }
 
     protected function getMethodModePrefix($mode)

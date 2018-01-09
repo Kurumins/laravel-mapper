@@ -5,9 +5,10 @@ namespace Mapper\Lib\VirtualFiedls;
 
 use Illuminate\Support\Str;
 use Mapper\Lib\MetaTable;
+use Mapper\Workers\MapperModel;
 
 
-class VirtualFieldBelongsTo extends VirtualFieldHasOne
+class VirtualFieldBelongsTo extends VirtualField
 {
 
 	public static function getType(): string
@@ -22,12 +23,12 @@ class VirtualFieldBelongsTo extends VirtualFieldHasOne
 	public function getSetMethodData()
 	{
 		$setData = parent::getSetMethodData();
-		$arg = $this->formatNameToMethod($this->getFieldName());
+		$arg = $this->getRelationshipName();
 		if($this->hasReferClass()) {
 			$model = $this->getReferredClassName();
 			$setData['args'] = $model.' $'.$arg;
 		}
-		$setData['name'] = $this->nameToMethod($this->getFieldName(), self::PREFIX_SET_METHODS);
+		$setData['name'] = $this->makeAMethodName(self::PREFIX_SET_METHODS);
 		return $setData;
 	}
 
@@ -40,13 +41,27 @@ class VirtualFieldBelongsTo extends VirtualFieldHasOne
 				$getData['type'] .= '|null';
 			}
 		}
-		$getData['name'] = $this->nameToMethod($this->getFieldName(), self::PREFIX_GET_METHODS);
+		$getData['name'] = $this->makeAMethodName(self::PREFIX_GET_METHODS);
 		return $getData;
 	}
 
-    protected function formatNameToMethod($fieldName)
+    protected static function formatNameToMethod(string $name)
     {
-        return Str::singular(VirtualField::formatNameToMethod($fieldName));
+        return Str::singular(VirtualField::formatNameToMethod($name));
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    public function getRelationshipName(): string
+    {
+        if($this->customRelName) {
+            return $this->customRelName;
+        } else {
+            /** @var MapperModel $className */
+            $className = $this->getReferredClass();
+            return $className::formatRelationshipName($this->getFieldName(), self::getType());
+        }
+    }
 }

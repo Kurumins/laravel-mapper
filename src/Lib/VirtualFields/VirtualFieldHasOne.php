@@ -5,6 +5,7 @@ namespace Mapper\Lib\VirtualFiedls;
 
 use Illuminate\Support\Str;
 use Mapper\Lib\MetaTable;
+use Mapper\Workers\MapperModel;
 
 
 class VirtualFieldHasOne extends VirtualField
@@ -23,12 +24,12 @@ class VirtualFieldHasOne extends VirtualField
 	public function getSetMethodData()
 	{
 		$setData = parent::getSetMethodData();
-		$arg = $this->formatNameToMethod($this->getFkCol());
+		$arg = $this->getRelationshipName();
 		if($this->hasReferClass()) {
 			$model = $this->getReferredClassName();
 			$setData['args'] = $model.' $'.$arg;
 		}
-		$setData['name'] = $this->nameToMethod($this->getFkCol(), self::PREFIX_SET_METHODS);
+		$setData['name'] = $this->makeAMethodName(self::PREFIX_SET_METHODS);
 		return $setData;
 	}
 
@@ -38,20 +39,28 @@ class VirtualFieldHasOne extends VirtualField
 		if($this->hasReferClass()) {
 			$getData['type'] = $this->getReferredClassName().'|null';
 		}
-		$getData['name'] = $this->nameToMethod($this->getFkCol(), self::PREFIX_GET_METHODS);
+		$getData['name'] = $this->makeAMethodName(self::PREFIX_GET_METHODS);
 		return $getData;
 	}
 
-	protected function formatNameToMethod($fieldName)
+	protected static function formatNameToMethod(string $name)
 	{
-
-	    Para o Hasone/hasmany seria melhor achar um jeito de usar a logica imposta pela classe model
-    do mesmo jeito, mas adicionando mais um item naquele array monstros
-
-	    echo "\n\nO Pau eh, o que faco com isso? $fieldName";NBA>smnbvc
-		return Str::singular(parent::formatNameToMethod($fieldName));
+		return Str::singular($name);
 	}
 
-
-
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    public function getRelationshipName(): string
+    {
+        if($this->customRelName) {
+            return parent::getRelationshipName();
+        } else {
+            /** @var MapperModel $className */
+            $className = $this->getReferredClass();
+            echo "\n== : ".self::getType();
+            return $className::formatRelationshipName($this->getReferredClassName(), self::getType());
+        }
+    }
 }
