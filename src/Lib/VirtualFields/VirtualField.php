@@ -61,23 +61,14 @@ abstract class VirtualField extends  MetaField
     public function getSetMethodData()
     {
         $setData = parent::getSetMethodData();
-        if ($this->customRelName) {
-            $setData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX . $this->customRelName;
-        } else {
-            $setData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX . $this->referredTable->getTableName();
-        }
-
+        $setData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX.$this->getRelationshipName();
         return $setData;
     }
 
     public function getGetMethodData()
     {
         $getData = parent::getGetMethodData();
-        if ($this->customRelName) {
-            $getData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX . $this->customRelName;
-        } else {
-            $getData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX . $this->referredTable->getTableName();
-        }
+        $getData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX.$this->getRelationshipName();
         return $getData;
     }
 
@@ -107,9 +98,8 @@ abstract class VirtualField extends  MetaField
 
 	public function getRelationshipDefinition():?array
 	{
-	    echo "\n".get_called_class()." -> ".static::getType();
 		return [
-		  $this->customRelName ?? $this->referredTable->getTableName() => [
+		  $this->getRelationshipName() => [
 			'rel' => static::getType(),
 			'local_col' => $this->getFieldName(),
 			'foreign_col' => $this->getFkCol()

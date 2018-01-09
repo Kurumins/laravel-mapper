@@ -163,9 +163,9 @@ class Customize
 					$specializedField[] = $fieldName;
 					$this->addLocalVirtualField($metaTable, $fieldName, $fk, in_array($fieldName, $uniqueFields));
 				}
-				if($referencedModelName) {
-					$this->addReferVirtualField($metaTable, $fieldName, $fk, in_array($fieldName, $uniqueFields));
-				}
+//				if($referencedModelName) {
+//					$this->addReferVirtualField($metaTable, $fieldName, $fk, in_array($fieldName, $uniqueFields));
+//				}
 			}
 		}
 		return $specializedField;
@@ -324,11 +324,12 @@ class Customize
             .$refericiedCol->getName();
 		if($isUnique) {
 			$metaField = new VirtualFieldHasOne($refericiedCol, $metaTable, $fk);
-		} else {
-			$metaField = new VirtualFieldHasMany($refericiedCol, $metaTable, $fk);
-		}
+//		} else {
+//			$metaField = new VirtualFieldHasMany($refericiedCol, $metaTable, $fk);
+
 		$metaField->setReferredClass($this->classMap[$metaTable->getTableName()], $this->customRelNames[$referencedMetaTable->getTableName()][$fieldName]);
 		$referencedMetaTable->addField($metaField);
+        }
 	}
 
 	private function addReferVirtualField(MetaTable $metaTable, $fieldName, ForeignKeyConstraint $fk, bool $isUnique)
