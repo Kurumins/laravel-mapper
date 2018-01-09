@@ -100,6 +100,7 @@ abstract class VirtualField extends  MetaField
 	{
 		return [
 		  $this->getRelationshipName() => [
+			'table' => $this->referredTable->getTableName(),
 			'rel' => static::getType(),
 			'local_col' => $this->getFieldName(),
 			'foreign_col' => $this->getFkCol()
