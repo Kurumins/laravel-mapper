@@ -320,16 +320,13 @@ class Customize
 		$doctrineReferredTbl = $this->connection->getDoctrineSchemaManager()->listTableDetails($fk->getForeignTableName());
 		$refericiedCol = $doctrineReferredTbl->getColumn($fk->getForeignColumns()[0]);
 		$referencedMetaTable = $this->metaTables[$fk->getForeignTableName()];
-		echo "\n\n".$metaTable->getTableName()." ($fieldName) => ".$referencedMetaTable->getTableName()." = "
-            .$refericiedCol->getName();
 		if($isUnique) {
 			$metaField = new VirtualFieldHasOne($refericiedCol, $metaTable, $fk);
-//		} else {
-//			$metaField = new VirtualFieldHasMany($refericiedCol, $metaTable, $fk);
-
-		$metaField->setReferredClass($this->classMap[$metaTable->getTableName()], $this->customRelNames[$referencedMetaTable->getTableName()][$fieldName]);
-		$referencedMetaTable->addField($metaField);
+		} else {
+			$metaField = new VirtualFieldHasMany($refericiedCol, $metaTable, $fk);
         }
+        $metaField->setReferredClass($this->classMap[$metaTable->getTableName()], $this->customRelNames[$referencedMetaTable->getTableName()][$fieldName]);
+        $referencedMetaTable->addField($metaField);
 	}
 
 	private function addReferVirtualField(MetaTable $metaTable, $fieldName, ForeignKeyConstraint $fk, bool $isUnique)
