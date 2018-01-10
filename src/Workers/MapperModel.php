@@ -40,10 +40,10 @@ abstract class MapperModel extends Model
      */
     protected $dates = ['created_at', 'updated_at'];
 
-//    public static function loadMap(array $map)
-//    {
-//        self::$map = $map;
-//    }
+    public static function loadMap(array $map)
+    {
+        self::$map = $map;
+    }
 //
 //    protected static function getMyMap()
 //    {

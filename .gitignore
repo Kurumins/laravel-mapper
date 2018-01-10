@@ -18,3 +18,5 @@ yarn-error.log
 demo-api.iml
 _ide_helper.php
 /nbproject/private/
+/tests/sample/Map.php
+/tests/sample/traits/*.php

@@ -271,7 +271,7 @@ class Customize
     private function findExpectedClasses()
     {
         /** @var \Composer\Autoload\ClassLoader $autoLoader */
-        $autoLoader = require base_path('/vendor/autoload.php');
+        $autoLoader = require \base_path('/vendor/autoload.php');
 		$classes = [];
         foreach ($this->config['namespaces'] as $nsMappable => $nsRaplecement) {
             foreach ($autoLoader->getClassMap() as $fullClassName => $file) {
