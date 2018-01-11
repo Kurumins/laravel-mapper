@@ -5,7 +5,8 @@ namespace {{namespace}};
 {{uses}}
 
 /**
- * Trait {{class}}
+ * This trait has the only purpose of helping developers and IDEs to identify the properties and
+ * methods of a Laravel Model.
  *
 {{properties}}
  *

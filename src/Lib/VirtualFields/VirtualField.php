@@ -61,14 +61,14 @@ abstract class VirtualField extends  MetaField
     public function getSetMethodData()
     {
         $setData = parent::getSetMethodData();
-        $setData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX.$this->getRelationshipName();
+        $setData['target'] = MapperModel::RELATIONSHIP_PREFIX.$this->getRelationshipName();
         return $setData;
     }
 
     public function getGetMethodData()
     {
         $getData = parent::getGetMethodData();
-        $getData['target'] = MetaTable::TARGET_AT_RELATIONSHIP_PREFIX.$this->getRelationshipName();
+        $getData['target'] = MapperModel::RELATIONSHIP_PREFIX.$this->getRelationshipName();
         return $getData;
     }
 

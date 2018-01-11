@@ -12,7 +12,6 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
      */
     private $db;
 
-
     public function setup()
     {
         parent::setUp();

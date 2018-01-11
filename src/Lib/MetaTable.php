@@ -56,12 +56,6 @@ class MetaTable
 	const TRAIT_NAME_PREFIX = 'Mapper';
 
 	/**
-	 * This prefix identify which virtual fields on class map are targetting at
-	 * relationships. Otherwise, they would be considered simple fields.
-	 */
-	const TARGET_AT_RELATIONSHIP_PREFIX = 'rel:';
-
-	/**
 	 * MetaClass constructor.
 	 * @param string $tableName
 	 */
