@@ -15,7 +15,6 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
 
     public function setup()
     {
-
         parent::setUp();
         try {
 //            $pdo = new PDO('mysql:dbname='.env('DB_NAME').';host='.env('DB_HOST'), env('DB_USER'), env('DB_PASS'));
@@ -23,14 +22,14 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
 
             $capsule = new Manager;
             $capsule->addConnection([
-     'driver' => 'mysql',
-     'host' => env('DB_HOST'),
-     'database' => env('DB_NAME'),
-     'username' => env('DB_USER'),
-     'password' => env('DB_PASS'),
-    ]);
-    // Setup the Eloquent ORM…
-    $capsule->bootEloquent();
+             'driver' => 'mysql',
+             'host' => env('DB_HOST'),
+             'database' => env('DB_NAME'),
+             'username' => env('DB_USER'),
+             'password' => env('DB_PASS'),
+            ]);
+            // Setup the Eloquent ORM…
+            $capsule->bootEloquent();
             $this->db = $capsule->getDatabaseManager();
         } catch (PDOException $e) {
             echo 'Connection failed: ' . $e->getMessage();

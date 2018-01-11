@@ -150,7 +150,7 @@ class Customize
 				$modelName = $this->classMap[$metaTable->getTableName()] ?? null;
 
 				$relName = $this->searchForCustomRelNames($tableName, $fieldName, $referencedMetaTable);
-				if($modelName && isset
+				if($referencedModelName && isset
                 ($this->customRelNames[$referencedMetaTable->getTableName()]) && is_null($relName)) {
 					$ref = $referencedMetaTable->getTableName();
 					$err = 'The table `'.$tableName.'` has more than one FK to `'.$ref.'`, the class ';

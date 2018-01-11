@@ -22,6 +22,7 @@ function config($key)
     if ($key !== 'mapper.fk_field_pattern') {
         throw new \Exception('The test setup does not have value of "' . $key . '" confg');
     }
+    return '/^fk_(.*)/';
 }
 
 function base_path($path)

@@ -16,14 +16,23 @@ class CompleteTest extends TestCase
     {
         parent::setup();
         if (!self::$wasSettedUp) {
-            self::$wasSettedUp = true;
-            $Cust = new Customize($this->getConnection());
-            $Cust->map();
             $mapPath = __DIR__ . '/sample/Map.php';
+            $traitPath = __DIR__ . '/sample';
+
+            self::$wasSettedUp = true;
+            $Cust = new Customize($this->getConnection(), [
+                'path' => $traitPath,
+                'namespaces' => [
+                    'MapperTest' => 'MapperTest\Traits'
+                ]
+            ]);
+            $Cust->map();
+
             $Cust->saveMapFile($mapPath);
             foreach ($Cust->getMetaTables() as $tableName => $metaTable) {
-                if (!is_null($metaTable->getFullModelName())) {
-                    $Cust->saveTraitFile($tableName, config('mapper.path'));
+                echo "$tableName --->>>\n";
+                if (!is_null($metaTable->getFullModelName())){
+                    $Cust->saveTraitFile($tableName, $traitPath);
                 }
             }
             MapperModel::loadMap(require($mapPath));

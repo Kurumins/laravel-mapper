@@ -22,13 +22,17 @@
     },
     "autoload": {
         "psr-4": {
-            "Mapper\\": "src/"
+            "Mapper\\": "src/",
         }
     },
     "autoload-dev": {
         "classmap": [
             "tests/TestCase.php"
-        ]
+        ],
+        "psr-4": {
+            "Mapper\\": "src/",
+            "MapperTest\\": "tests/sample/MapperTest/"
+        }
     },
     "extra": {
         "laravel": {
@@ -36,5 +40,8 @@
                 "Mapper\\ServiceProvider"
             ]
         }
+    },
+    "config": {
+        "optimize-autoloader": true
     }
 }
