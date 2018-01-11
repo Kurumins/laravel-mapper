@@ -27,17 +27,14 @@ class CompleteTest extends TestCase
                 ]
             ]);
             $Cust->map();
-
             $Cust->saveMapFile($mapPath);
             foreach ($Cust->getMetaTables() as $tableName => $metaTable) {
-                echo "$tableName --->>>\n";
                 if (!is_null($metaTable->getFullModelName())){
                     $Cust->saveTraitFile($tableName, $traitPath);
                 }
             }
             MapperModel::loadMap(require($mapPath));
         }
-
     }
 
     public function testOk()

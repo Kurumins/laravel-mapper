@@ -22,7 +22,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Mapper\\": "src/",
+            "Mapper\\": "src/"
         }
     },
     "autoload-dev": {
@@ -30,7 +30,6 @@
             "tests/TestCase.php"
         ],
         "psr-4": {
-            "Mapper\\": "src/",
             "MapperTest\\": "tests/sample/MapperTest/"
         }
     },
