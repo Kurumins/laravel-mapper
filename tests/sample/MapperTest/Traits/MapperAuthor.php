@@ -25,8 +25,6 @@ use  MapperTest\Post;
  * @method Author|null getTeacher()
  * @method $this       addMyPost(Post $MyPost)
  * @method Post[]      listMyPosts()
- * @method $this       addReviewedPost(Post $ReviewedPost)
- * @method Post[]      listReviewedPosts()
  *
  * @package MapperTest\Traits
  */

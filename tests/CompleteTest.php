@@ -5,6 +5,7 @@ use Carbon\Carbon;
 use Mapper\Customize;
 use Mapper\Workers\MapperModel;
 use MapperTest\Author;
+use MapperTest\Post;
 
 class CompleteTest extends TestCase
 {
@@ -58,38 +59,70 @@ class CompleteTest extends TestCase
         $this->assertInstanceOf(Carbon::class, $retrieveAuthor->getCreatedAt());
         $this->assertInstanceOf(Carbon::class, $retrieveAuthor->getUpdatedAt());
         $this->assertNull($retrieveAuthor->getTeacher());
-//        $profAuthor = new Author();
-//        $profAuthor->setName($name);
-//        $profAuthor->setType("beginner");
 
     }
 
-    public function testObjectExchangingMethods()
+    public function testBelongsTo()
     {
-        $studentAuthor = new Author();
-        $studentAuthor->setName("Barak Obama");
-        $studentAuthor->setType("beginner");
-        $studentAuthor->save();
-
-
         $profAuthor = new Author();
         $profAuthor->setName("Jhon Kenedy");
         $profAuthor->setType("professional");
-        $profAuthor->setStudent($studentAuthor);
-        $this->assertTrue($profAuthor->save());
-        $profId = $profAuthor->getId();
+        $profAuthor->save();
 
+        $studentAuthor = new Author();
+        $studentAuthor->setName("Barak Obama");
+        $studentAuthor->setType("beginner");
+        $studentAuthor->setTeacher($profAuthor);
+        $studentAuthor->save();
 
+        $profAuthor->fresh();
         $studentAuthor->fresh();
-
-
 
         $this->assertInstanceOf(Author::class, $profAuthor->getStudent());
         $this->assertNull($profAuthor->getTeacher());
 
         $this->assertInstanceOf(Author::class, $studentAuthor->getTeacher());
         $this->assertNull($studentAuthor->getStudent());
+    }
+
+    public function testHasOne()
+    {
+        $studentAuthor = new Author();
+        $studentAuthor->setName("Barak Obama");
+        $studentAuthor->setType("beginner");
+
+        $profAuthor = new Author();
+        $profAuthor->setName("Jhon Kenedy");
+        $profAuthor->setType("professional");
+        $profAuthor->save();
+
+        $profAuthor->setStudent($studentAuthor);
+
+        $profAuthor->fresh();
+        $studentAuthor->fresh();
+
+        $this->assertInstanceOf(Author::class, $profAuthor->getStudent());
+        $this->assertNull($profAuthor->getTeacher());
+
+        $this->assertInstanceOf(Author::class, $studentAuthor->getTeacher());
+        $this->assertNull($studentAuthor->getStudent());
+    }
+
+    public function testHasMany()
+    {
+        $author = new Author();
+        $author->setName("Barak Obama");
+        $author->setType("beginner");
+        $author->save();
+
+        $post = new Post();
+        $post->setAproved(true)->setAuthor($author)->setContent("Cool ".Carbon::now())->setTitle("Works")->save();
+
+        $this->assertGreaterThan(0, count($author->listMyPosts()));
+        $this->assertInstanceOf(Author::class, $post->getAuthor());
 
     }
+
+
 
 }

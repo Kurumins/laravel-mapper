@@ -29,6 +29,7 @@ abstract class MapperModel extends Model
     const MAP_RELATIONSHIP = 'relationships';
     const MAP_SETTERS = 'setters';
     const MAP_GETTERS = 'getters';
+    const MAP_MODEL = 'model';
 
     /**
      * This prefix identify which virtual fields on class map are targetting at
@@ -49,10 +50,21 @@ abstract class MapperModel extends Model
         self::$map = $map;
     }
 
+    /**
+     * @param $table
+     * @throws BadMappingException
+     * @return string
+     */
     private static function getModelFor($table)
     {
-        achou um bug...
-        o mapa de classes usados para definir os traits tb deveria ser salvo para usar aqui
+        if (!isset(self::$map[$table])) {
+            throw new BadMappingException('There is no map for: ' . $table);
+        }
+        $tableMap = self::$map[$table];
+        if(!isset($tableMap[self::MAP_MODEL]) || is_null($tableMap[self::MAP_MODEL])) {
+            throw new BadMappingException('We cannot determine the model for  the table: ' . $table);
+        }
+        return $tableMap[self::MAP_MODEL];
     }
 
     /**
@@ -171,6 +183,7 @@ abstract class MapperModel extends Model
             switch ($data['rel']) {
                 case 'hasOne':
                 case 'hasMany':
+                    echo "$key -> has one ";
                     return $this->{$key}()->save($value);
                     break;
                 case 'belongsTo':

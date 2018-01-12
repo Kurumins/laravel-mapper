@@ -61,6 +61,9 @@ class MetaTable
 	 */
 	public function __construct(string $tableName, array $classMap)
 	{
+        /**
+         * @todo Remove classMap from here, it probably is not necessary
+         */
 		$this->table = $tableName;
 		$this->classMap = $classMap;
 
@@ -288,6 +291,7 @@ class MetaTable
 		$attributes[MapperModel::MAP_RELATIONSHIP] = $this->getRelationShips();
 		$attributes[MapperModel::MAP_SETTERS] = $atts['setters'];
 		$attributes[MapperModel::MAP_GETTERS] = $atts['getters'];
+		$attributes[MapperModel::MAP_MODEL] = $atts['getters'];
 
 		return $attributes;
 	}

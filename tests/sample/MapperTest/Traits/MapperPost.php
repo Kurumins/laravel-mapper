@@ -27,8 +27,6 @@ use  Carbon\Carbon;
  * @method PostComment[] listPostComments()
  * @method $this         setAuthor(Author $Author)
  * @method Author        getAuthor()
- * @method $this         setReviewer(Author $Reviewer)
- * @method Author        getReviewer()
  *
  * @package MapperTest\Traits
  */

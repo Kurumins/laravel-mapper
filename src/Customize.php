@@ -186,7 +186,9 @@ class Customize
 	{
 		$mapCode = [];
 		foreach ($this->getMetaTables() as $tableName => $metaTable){
-			$mapCode[] = "'".$metaTable->getTableName()."' => [\n".$this->arrayToSourceCode($metaTable->getTableMap($this->classMap), 2)."\n\t]";
+		    $tableInfo = $metaTable->getTableMap();
+		    $tableInfo[MapperModel::MAP_MODEL] = $this->classMap[$tableName] ?? null;
+			$mapCode[] = "'".$metaTable->getTableName()."' => [\n".$this->arrayToSourceCode($tableInfo, 2)."\n\t]";
 		}
 		$code = '<?php '."\nreturn [\n\t".implode(",\n\t", $mapCode)."\n];";
 		if(file_put_contents($mapPath, $code) !== false){
