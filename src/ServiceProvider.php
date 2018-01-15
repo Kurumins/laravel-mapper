@@ -23,14 +23,14 @@ class ServiceProvider extends SP
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/Templates/mapper_config.php' => config_path('mapper.php'),
-            ], 'mapper_confg');
+            ], 'mapper');
 
             $this->commands([
                 GeneratorCommand::class,
             ]);
         }
-        if(file_exists(config('mapper_confg.path_map'))) {
-			MapperModel::loadMap(require (config('mapper_confg.path_map')));
+        if(file_exists(config('mapper.path_map'))) {
+			MapperModel::loadMap(require (config('mapper.path_map')));
 		}
     }
 
