@@ -74,6 +74,7 @@ class GeneratorCommand extends Command
         } catch (\Exception $e) {
             $this->error("Sorry: " . $e->getMessage());
             $this->error($e->getFile() . ':' . $e->getLine());
+            $this->info($e->getTraceAsString());
         }
     }
 }

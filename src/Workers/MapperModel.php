@@ -246,7 +246,7 @@ abstract class MapperModel extends Model
             case 'belongsToMany':
                 $pattern = config('mapper.fk_field_pattern');
                 if (!preg_match($pattern, $relName, $matche)) {
-                    throw new \Exception('Foreign field ' . $relName . '.`' . static::getStaticTable() . '` does not match with your 
+                    throw new \Exception('Foreign field `' . $relName . '` does not match with your 
                 default pattern: ' . $pattern);
                 } else {
                     return Str::studly($matche['field'] ?? $matche[0]);
