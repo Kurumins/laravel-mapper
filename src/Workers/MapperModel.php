@@ -146,14 +146,10 @@ abstract class MapperModel extends Model
 
     private static function extractRelName(string $name)
     {
-        echo "\n\nTIRANDO $name";
         $name = preg_replace('/^' . self::RELATIONSHIP_PREFIX . '/', '', $name, -1, $count);
         if ($count === 1) {
-
-            echo " = FICA " . $name;
             return $name;
         } else {
-            echo " = nao mudsa";
             return null;
         }
     }
