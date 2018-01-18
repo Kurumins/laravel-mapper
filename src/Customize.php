@@ -52,8 +52,9 @@ class Customize
     public function __construct(DatabaseManager $connection, array $config = [])
     {
         $this->connection = $connection;
-        if($config)
+        if ($config) {
             $this->config = $config;
+        }
     }
 
     /**
@@ -61,170 +62,171 @@ class Customize
      */
     public function map()
     {
-		$this->mapClasses();
-		$this->mapDb();
+        $this->mapClasses();
+        $this->mapDb();
     }
 
     /**
      * @throws \Exception
      */
     private function mapClasses()
-	{
-		foreach($this->findExpectedClasses() as $class ){
-			if( is_subclass_of($class, MapperModel::class ) ) {
-				/** @var MapperModel $class */
-				if($class::ignore()) {
-					echo "\nIgnoring rejected model class $class";
+    {
+        foreach ($this->findExpectedClasses() as $class) {
+            if (is_subclass_of($class, MapperModel::class)) {
+                /** @var MapperModel $class */
+                if ($class::ignore()) {
+                    echo "\nIgnoring rejected model class $class";
                 } else {
-					if(isset($this->classMap[$class::getStaticTable()])) {
-						throw new \Exception('Only one model can represent a table (consider using an abstract class)');
-					}
-					$this->classMap[$class::getStaticTable()] = $class;
+                    if (isset($this->classMap[$class::getStaticTable()])) {
+                        throw new \Exception('Only one model can represent a table (consider using an abstract class)');
+                    }
+                    $this->classMap[$class::getStaticTable()] = $class;
                 }
-			}
-		}
-	}
+            }
+        }
+    }
 
     /**
      * @throws \Doctrine\DBAL\DBALException
      */
     private function mapDb()
-	{
-		$this->connection
-		  ->getDoctrineConnection()
-		  ->getDatabasePlatform()
-		  ->registerDoctrineTypeMapping('enum', 'string');
+    {
+        $this->connection
+            ->getDoctrineConnection()
+            ->getDatabasePlatform()
+            ->registerDoctrineTypeMapping('enum', 'string');
 
-		$tables = array_diff($this->connection->getDoctrineSchemaManager()->listTableNames(), $this->ignoreTableList);
-		$this->mapTables($tables);
-		$this->mapFields($tables);
-	}
+        $tables = array_diff($this->connection->getDoctrineSchemaManager()->listTableNames(), $this->ignoreTableList);
+        $this->mapTables($tables);
+        $this->mapFields($tables);
+    }
 
-	private function mapTables(array $tables)
+    private function mapTables(array $tables)
     {
         $tableComments = $this->loadTablesComment();
         foreach ($tables as $tableName) {
-            if(!in_array($tableName, $this->ignoreTableList)) {
+            if (!in_array($tableName, $this->ignoreTableList)) {
                 $this->tables[$tableName] = $this->connection->getDoctrineSchemaManager()->listTableDetails($tableName);
                 $metaTable = new MetaTable($tableName, $this->classMap);
 
-                if(isset($this->classMap[$tableName])) {
-					$metaTable->setFullModelName($this->classMap[$tableName]);
-					$metaTable->setNamespace($this->getClassNsReplaced($this->classMap[$tableName]));
-				}
+                if (isset($this->classMap[$tableName])) {
+                    $metaTable->setFullModelName($this->classMap[$tableName]);
+                    $metaTable->setNamespace($this->getClassNsReplaced($this->classMap[$tableName]));
+                }
 
                 $metaTable->setComment($tableComments[$tableName]);
-				$this->metaTables[$tableName] = $metaTable;
+                $this->metaTables[$tableName] = $metaTable;
             }
         }
     }
 
-	private function mapFields(array $tables)
+    private function mapFields(array $tables)
     {
         foreach ($tables as $tableName) {
             $metaTable = $this->metaTables[$tableName];
 
-			$specializedField = $this->mapConstrainedFields($tableName);
+            $specializedField = $this->mapConstrainedFields($tableName);
 
-			// simple fields
-			foreach ($this->tables[$tableName]->getColumns() as $col) {
-				if(!in_array($col->getName(), $specializedField)) {
-					$metaTable->addField(new MetaField($col));
-				}
-			}
+            // simple fields
+            foreach ($this->tables[$tableName]->getColumns() as $col) {
+                if (!in_array($col->getName(), $specializedField)) {
+                    $metaTable->addField(new MetaField($col));
+                }
+            }
         }
     }
 
-	private function mapConstrainedFields($tableName) : array
-	{
-		$specializedField = [];
-		$uniqueFields = $this->loadUniqueFields($tableName);
-		$metaTable = $this->metaTables[$tableName];
-		$this->customRelNames = [];
+    private function mapConstrainedFields($tableName): array
+    {
+        $specializedField = [];
+        $uniqueFields = $this->loadUniqueFields($tableName);
+        $metaTable = $this->metaTables[$tableName];
+        $this->customRelNames = [];
 
-		foreach ($this->tables[$tableName]->getForeignKeys() as $fk) {
-			foreach ($fk->getLocalColumns() as $fieldName) {
-				$referencedMetaTable = $this->metaTables[$fk->getForeignTableName()];
-				$referencedModelName = $this->classMap[$referencedMetaTable->getTableName()] ?? null;
-				$modelName = $this->classMap[$metaTable->getTableName()] ?? null;
+        foreach ($this->tables[$tableName]->getForeignKeys() as $fk) {
+            foreach ($fk->getLocalColumns() as $fieldName) {
+                $referencedMetaTable = $this->metaTables[$fk->getForeignTableName()];
+                $referencedModelName = $this->classMap[$referencedMetaTable->getTableName()] ?? null;
+                $modelName = $this->classMap[$metaTable->getTableName()] ?? null;
 
 
-				if($modelName) {
-					$specializedField[] = $fieldName;
-					$this->addLocalVirtualField($metaTable, $fieldName, $fk, in_array($fieldName, $uniqueFields));
-				}
+                if ($modelName) {
+                    $specializedField[] = $fieldName;
+                    $this->addLocalVirtualField($metaTable, $fieldName, $fk, in_array($fieldName, $uniqueFields));
+                }
 
                 $relName = $this->searchForCustomRelNames($metaTable->getTableName(), $fieldName, $metaTable);
                 $this->customRelNames[$metaTable->getTableName()][$fieldName] = $relName;
-				if($referencedModelName) {
-					$this->addReferVirtualField($metaTable, $fieldName, $fk);
-				}
-			}
-		}
-		return $specializedField;
-	}
+                if ($referencedModelName) {
+                    $this->addReferVirtualField($metaTable, $fieldName, $fk);
+                }
+            }
+        }
+        return $specializedField;
+    }
 
     public function saveTraitFile($tableName, $defaultNSDir)
-	{
-		$metaTables = $this->getMetaTables();
-		if(!isset($metaTables[$tableName])) {
-			throw new \Exception('Unkown table: '.$tableName);
-		}
-		$filePath = $defaultNSDir.DIRECTORY_SEPARATOR.$metaTables[$tableName]->getRelativeFilePath();
-		$this->createDirIfNotExist(pathinfo($filePath, PATHINFO_DIRNAME));
-		if(file_put_contents($filePath, $metaTables[$tableName]->generateTraitCode()) !== false){
-			return [
-			  'trait_name' => $metaTables[$tableName]->getTraitName(),
-			  'path' => $filePath
-			];
-		} else {
-			return false;
-		}
-	}
+    {
+        $metaTables = $this->getMetaTables();
+        if (!isset($metaTables[$tableName])) {
+            throw new \Exception('Unkown table: ' . $tableName);
+        }
+        $filePath = $defaultNSDir . DIRECTORY_SEPARATOR . $metaTables[$tableName]->getRelativeFilePath();
+        $this->createDirIfNotExist(pathinfo($filePath, PATHINFO_DIRNAME));
+        if (file_put_contents($filePath, $metaTables[$tableName]->generateTraitCode()) !== false) {
+            return [
+                'trait_name' => $metaTables[$tableName]->getTraitName(),
+                'path' => $filePath
+            ];
+        } else {
+            return false;
+        }
+    }
 
-	public function saveMapFile($mapPath)
-	{
-		$mapCode = [];
-		foreach ($this->getMetaTables() as $tableName => $metaTable){
-		    $tableInfo = $metaTable->getTableMap();
-		    $tableInfo[MapperModel::MAP_MODEL] = $this->classMap[$tableName] ?? null;
-			$mapCode[] = "'".$metaTable->getTableName()."' => [\n".$this->arrayToSourceCode($tableInfo, 2)."\n\t]";
-		}
-		$code = '<?php '."\nreturn [\n\t".implode(",\n\t", $mapCode)."\n];";
-		if(file_put_contents($mapPath, $code) !== false){
-			return $mapPath;
-		} else {
-			return false;
-		}
-	}
+    public function saveMapFile($mapPath)
+    {
+        $mapCode = [];
+        foreach ($this->getMetaTables() as $tableName => $metaTable) {
+            $tableInfo = $metaTable->getTableMap();
+            $tableInfo[MapperModel::MAP_MODEL] = $this->classMap[$tableName] ?? null;
+            $mapCode[] = "'" . $metaTable->getTableName() . "' => [\n" . $this->arrayToSourceCode($tableInfo,
+                    2) . "\n\t]";
+        }
+        $code = '<?php ' . "\nreturn [\n\t" . implode(",\n\t", $mapCode) . "\n];";
+        if (file_put_contents($mapPath, $code) !== false) {
+            return $mapPath;
+        } else {
+            return false;
+        }
+    }
 
-	private function arrayToSourceCode(array $arr, $level = 0)
-	{
-		$code = [];
-		$ident = str_repeat("\t", $level);
-		foreach ($arr as $key => $val )
-		{
-			$string = $ident."'$key' => ";
-			if(is_array($val)) {
-				$string .= "[\n".$this->arrayToSourceCode($val, $level+1)."\n$ident],";
-			} else {
-				$string .= var_export($val, true).',';
-			}
-			$code[] = $string;
-		}
-		return implode("\n", $code);
-	}
+    private function arrayToSourceCode(array $arr, $level = 0)
+    {
+        $code = [];
+        $ident = str_repeat("\t", $level);
+        foreach ($arr as $key => $val) {
+            $string = $ident . "'$key' => ";
+            if (is_array($val)) {
+                $string .= "[\n" . $this->arrayToSourceCode($val, $level + 1) . "\n$ident],";
+            } else {
+                $string .= var_export($val, true) . ',';
+            }
+            $code[] = $string;
+        }
+        return implode("\n", $code);
+    }
 
 
 
 //
+
     /**
      * @return array
      */
     protected function loadTablesComment()
     {
         $comments = [];
-        foreach ($this->connection->getPdo()->query('SHOW TABLE STATUS')->fetchAll() as $tableStatus){
+        foreach ($this->connection->getPdo()->query('SHOW TABLE STATUS')->fetchAll() as $tableStatus) {
             $comments[$tableStatus['Name']] = $tableStatus['Comment'];
         }
         return $comments;
@@ -246,7 +248,7 @@ class Customize
     {
         $fields = [];
         foreach ($this->tables[$tableName]->getIndexes() as $index) {
-            if($index->isUnique() && count($index->getColumns()) == 1) {
+            if ($index->isUnique() && count($index->getColumns()) == 1) {
                 $fields[] = $index->getColumns()[0];
             }
         }
@@ -263,51 +265,53 @@ class Customize
             return false;
         }
     }
+
     private function findExpectedClasses()
     {
         /** @var \Composer\Autoload\ClassLoader $autoLoader */
         $autoLoader = require \base_path('/vendor/autoload.php');
-		$classes = [];
+        $classes = [];
         foreach ($this->config['namespaces'] as $nsMappable => $nsRaplecement) {
             foreach ($autoLoader->getClassMap() as $fullClassName => $file) {
-                if(preg_match("/^".addslashes($nsMappable)."/", $fullClassName)) {
-					$classes[] = $fullClassName;
+                if (preg_match("/^" . addslashes($nsMappable) . "/", $fullClassName)) {
+                    $classes[] = $fullClassName;
                 }
             }
         }
         return $classes;
     }
 
-	private function getClassNsReplaced(string $originalClassName)
-	{
-		foreach ($this->config['namespaces'] as $nsMappable => $nsRaplecement) {
-			if(preg_match("/^".addslashes($nsMappable)."/", $originalClassName)) {
-				$originalClassName = preg_replace("/^".addslashes($nsMappable)."/", $nsRaplecement, $originalClassName);
-				break;
-			}
-		}
-		return substr($originalClassName, 0, strrpos($originalClassName, '\\'));
-	}
+    private function getClassNsReplaced(string $originalClassName)
+    {
+        foreach ($this->config['namespaces'] as $nsMappable => $nsRaplecement) {
+            if (preg_match("/^" . addslashes($nsMappable) . "/", $originalClassName)) {
+                $originalClassName = preg_replace("/^" . addslashes($nsMappable) . "/", $nsRaplecement,
+                    $originalClassName);
+                break;
+            }
+        }
+        return substr($originalClassName, 0, strrpos($originalClassName, '\\'));
+    }
 
-	/**
-	 * This method search for custom relationship names. All
-	 * @param string $tableName
-	 * @param string $fieldName
-	 * @param MetaTable $referencedMetaTable
-	 * @throws \Exception
-	 */
-	private function searchForCustomRelNames(string  $tableName, string $fieldName, MetaTable $referencedMetaTable)
-	{
-		if(isset($this->classMap[$referencedMetaTable->getTableName()])) {
-			/** @var MapperModel $referredModel */
-			$referredModel = $this->classMap[$referencedMetaTable->getTableName()];
-			$relName = $referredModel::relNameByField($tableName, $fieldName);
-		} else {
-			$relName = null;
-		}
-		return $relName;
+    /**
+     * This method search for custom relationship names. All
+     * @param string $tableName
+     * @param string $fieldName
+     * @param MetaTable $referencedMetaTable
+     * @throws \Exception
+     */
+    private function searchForCustomRelNames(string $tableName, string $fieldName, MetaTable $referencedMetaTable)
+    {
+        if (isset($this->classMap[$referencedMetaTable->getTableName()])) {
+            /** @var MapperModel $referredModel */
+            $referredModel = $this->classMap[$referencedMetaTable->getTableName()];
+            $relName = $referredModel::relNameByField($tableName, $fieldName);
+        } else {
+            $relName = null;
+        }
+        return $relName;
 //		$this->customRelNames[$referenciedMetaTable->getTableName()][$fieldName] = $relName;
-	}
+    }
 
 
     /**
@@ -318,32 +322,36 @@ class Customize
      * @throws \Doctrine\DBAL\Schema\SchemaException
      * @throws \Exception
      */
-	private function addLocalVirtualField(MetaTable $metaTable, string $fieldName, ForeignKeyConstraint $fk, bool $isUnique)
-	{
+    private function addLocalVirtualField(
+        MetaTable $metaTable,
+        string $fieldName,
+        ForeignKeyConstraint $fk,
+        bool $isUnique
+    ) {
         $referencedMetaTable = $this->metaTables[$fk->getForeignTableName()];
         $referencedModelName = $this->classMap[$referencedMetaTable->getTableName()] ?? null;
 
         $relName = $this->searchForCustomRelNames($metaTable->getTableName(), $fieldName, $referencedMetaTable);
-        if(isset($this->customRelNames[$referencedMetaTable->getTableName()]) && is_null
+        if (isset($this->customRelNames[$referencedMetaTable->getTableName()]) && is_null
             ($relName)) {
             $ref = $referencedMetaTable->getTableName();
-            $err = 'The table `'.$metaTable->getTableName().'` has more than one FK to `'.$ref.'`, the class ';
-            $err .= $referencedModelName.' must define each relationship name. See '.MapperModel::class.'::relNameByField() method';
+            $err = 'The table `' . $metaTable->getTableName() . '` has more than one FK to `' . $ref . '`, the class ';
+            $err .= $referencedModelName . ' must define each relationship name. See ' . MapperModel::class . '::relNameByField() method';
             throw new \Exception($err);
         }
         $this->customRelNames[$referencedMetaTable->getTableName()][$fieldName] = $relName;
 
-		$doctrineReferredTbl = $this->connection->getDoctrineSchemaManager()->listTableDetails($fk->getForeignTableName());
-		$refericiedCol = $doctrineReferredTbl->getColumn($fk->getForeignColumns()[0]);
+        $doctrineReferredTbl = $this->connection->getDoctrineSchemaManager()->listTableDetails($fk->getForeignTableName());
+        $refericiedCol = $doctrineReferredTbl->getColumn($fk->getForeignColumns()[0]);
 
-		if($isUnique) {
-			$metaField = new VirtualFieldHasOne($refericiedCol, $metaTable, $fk);
-		} else {
-			$metaField = new VirtualFieldHasMany($refericiedCol, $metaTable, $fk);
+        if ($isUnique) {
+            $metaField = new VirtualFieldHasOne($refericiedCol, $metaTable, $fk);
+        } else {
+            $metaField = new VirtualFieldHasMany($refericiedCol, $metaTable, $fk);
         }
         $metaField->setReferredClass($this->classMap[$metaTable->getTableName()], $relName);
         $referencedMetaTable->addField($metaField);
-	}
+    }
 
     /**
      * @param MetaTable $metaTable
@@ -352,19 +360,20 @@ class Customize
      * @throws \Doctrine\DBAL\Schema\SchemaException
      * @throws \Exception
      */
-	private function addReferVirtualField(MetaTable $metaTable, $fieldName, ForeignKeyConstraint $fk)
-	{
+    private function addReferVirtualField(MetaTable $metaTable, $fieldName, ForeignKeyConstraint $fk)
+    {
         $referencedMetaTable = $this->metaTables[$fk->getForeignTableName()];
         $referencedModelName = $this->classMap[$referencedMetaTable->getTableName()];
         $tableName = $metaTable->getTableName();
         $localCol = $this->tables[$tableName]->getColumn($fieldName);
         $metaField = new VirtualFieldBelongsTo($localCol, $referencedMetaTable, $fk);
 
-        $relName = $this->searchForCustomRelNames($referencedMetaTable->getTableName(), $metaField->getFkCol(), $metaTable);
+        $relName = $this->searchForCustomRelNames($referencedMetaTable->getTableName(), $metaField->getFkCol(),
+            $metaTable);
 
         $metaField->setReferredClass($referencedModelName, $relName);
         $metaTable->addField($metaField);
-		// @todo Belongs to many
-	}
+        // @todo Belongs to many
+    }
 
 }

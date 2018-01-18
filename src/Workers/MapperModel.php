@@ -61,7 +61,7 @@ abstract class MapperModel extends Model
             throw new BadMappingException('There is no map for: ' . $table);
         }
         $tableMap = self::$map[$table];
-        if(!isset($tableMap[self::MAP_MODEL]) || is_null($tableMap[self::MAP_MODEL])) {
+        if (!isset($tableMap[self::MAP_MODEL]) || is_null($tableMap[self::MAP_MODEL])) {
             throw new BadMappingException('We cannot determine the model for  the table: ' . $table);
         }
         return $tableMap[self::MAP_MODEL];
@@ -121,13 +121,16 @@ abstract class MapperModel extends Model
             $data = $this->getClassRelationships()[$method];
             switch ($data['rel']) {
                 case 'belongsTo':
-                    return $this->{$data['rel']}(self::getModelFor($data['table']), $data['local_col'], $data['foreign_col']);
+                    return $this->{$data['rel']}(self::getModelFor($data['table']), $data['local_col'],
+                        $data['foreign_col']);
                     break;
                 case 'hasOne':
-                    return $this->{$data['rel']}(self::getModelFor($data['table']), $data['foreign_col'], $data['local_col']);
+                    return $this->{$data['rel']}(self::getModelFor($data['table']), $data['foreign_col'],
+                        $data['local_col']);
                     break;
                 case 'hasMany':
-                    return $this->{$data['rel']}(self::getModelFor($data['table']), $data['foreign_col'], $data['local_col']);
+                    return $this->{$data['rel']}(self::getModelFor($data['table']), $data['foreign_col'],
+                        $data['local_col']);
                     break;
                 case 'belongsToMany':
                     return $this->{$data['rel']}(self::getModelFor($data['table']), $data['pivot'], $data['local_col'],
@@ -144,10 +147,10 @@ abstract class MapperModel extends Model
     private static function extractRelName(string $name)
     {
         echo "\n\nTIRANDO $name";
-        $name = preg_replace('/^'.self::RELATIONSHIP_PREFIX.'/', '', $name, -1, $count);
-        if($count === 1) {
+        $name = preg_replace('/^' . self::RELATIONSHIP_PREFIX . '/', '', $name, -1, $count);
+        if ($count === 1) {
 
-            echo " = FICA ".$name;
+            echo " = FICA " . $name;
             return $name;
         } else {
             echo " = nao mudsa";
@@ -202,7 +205,7 @@ abstract class MapperModel extends Model
     //endregion
 
     /**
-	 *
+     *
      * It is useful when a child class do not have to be mapped because its mom is the real model.
      * Use get_called_class() to identify if a child or a mather has been called.
      *
@@ -217,15 +220,15 @@ abstract class MapperModel extends Model
     }
 
 
-	public static function getStaticTable()
-	{
-		$reflectionClass = new ReflectionClass(static::class);
-		if(isset($reflectionClass->getDefaultProperties()['table'])) {
-			return $reflectionClass->getDefaultProperties()['table'];
-		} else {
-			return str_replace('\\', '', Str::snake(Str::plural(class_basename(static::class))));
-		}
-	}
+    public static function getStaticTable()
+    {
+        $reflectionClass = new ReflectionClass(static::class);
+        if (isset($reflectionClass->getDefaultProperties()['table'])) {
+            return $reflectionClass->getDefaultProperties()['table'];
+        } else {
+            return str_replace('\\', '', Str::snake(Str::plural(class_basename(static::class))));
+        }
+    }
 
     /**
      * @todo Bug fix: this logic only works from the perspective of a belongsTo because the $fieldName is a
@@ -236,10 +239,9 @@ abstract class MapperModel extends Model
      * @return string
      * @throws \Exception
      */
-	public static function formatRelationshipName(string $relName, string $relType)
-	{
-		switch ($relType)
-        {
+    public static function formatRelationshipName(string $relName, string $relType)
+    {
+        switch ($relType) {
             case 'hasOne':
             case 'hasMany':
                 return $relName;
@@ -247,19 +249,19 @@ abstract class MapperModel extends Model
             case 'belongsTo':
             case 'belongsToMany':
                 $pattern = config('mapper.fk_field_pattern');
-                if(!preg_match($pattern, $relName, $matche)) {
-                    throw new \Exception('Foreign field '.$relName.'.`'.static::getStaticTable().'` does not match with your 
-                default pattern: '.$pattern);
+                if (!preg_match($pattern, $relName, $matche)) {
+                    throw new \Exception('Foreign field ' . $relName . '.`' . static::getStaticTable() . '` does not match with your 
+                default pattern: ' . $pattern);
                 } else {
                     return Str::studly($matche['field'] ?? $matche[0]);
                 }
             default:
-                throw new \Exception('unkown relationship type: '.$relType);
+                throw new \Exception('unkown relationship type: ' . $relType);
         }
-	}
+    }
 
-	public static function relNameByField($tableName, $fieldName)
-	{
-		return null;
-	}
+    public static function relNameByField($tableName, $fieldName)
+    {
+        return null;
+    }
 }

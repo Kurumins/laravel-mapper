@@ -44,33 +44,33 @@ class GeneratorCommand extends Command
      */
     public function handle()
     {
-        try{
-            $this->comment("Generating models in ".config('mapper.path'));
+        try {
+            $this->comment("Generating models in " . config('mapper.path'));
             $this->customizer->map();
             echo "\n\n\n---ARRRRMAIR.";
             $this->comment("Db mapped");
-			$table = new Table($this->output);
-			$table->setHeaders(['Table', 'Trait', 'Path']);
-			foreach ($this->customizer->getMetaTables() as $tableName => $metaTable){
-				if(!is_null($metaTable->getFullModelName())) {
-					$result = $this->customizer->saveTraitFile($tableName, config('mapper.path'));
-					if($result === false ) {
-						$this->error("$tableName Failed!");
-					} else {
-						$table->addRow([$tableName, $result['trait_name'], $result['path']]);
-					}
-				} else {
-					$table->addRow([$tableName, '', '-- No model defined --']);
-				}
+            $table = new Table($this->output);
+            $table->setHeaders(['Table', 'Trait', 'Path']);
+            foreach ($this->customizer->getMetaTables() as $tableName => $metaTable) {
+                if (!is_null($metaTable->getFullModelName())) {
+                    $result = $this->customizer->saveTraitFile($tableName, config('mapper.path'));
+                    if ($result === false) {
+                        $this->error("$tableName Failed!");
+                    } else {
+                        $table->addRow([$tableName, $result['trait_name'], $result['path']]);
+                    }
+                } else {
+                    $table->addRow([$tableName, '', '-- No model defined --']);
+                }
 
-			}
-			$this->customizer->saveMapFile(config('mapper.path_map'));
-			$this->comment("Class map save at ".config('mapper.path_map'));
-			$table->render();
+            }
+            $this->customizer->saveMapFile(config('mapper.path_map'));
+            $this->comment("Class map save at " . config('mapper.path_map'));
+            $table->render();
             $this->info("Success");
         } catch (\Exception $e) {
-            $this->error("Sorry: ".$e->getMessage());
-            $this->error($e->getFile().':'.$e->getLine());
+            $this->error("Sorry: " . $e->getMessage());
+            $this->error($e->getFile() . ':' . $e->getLine());
         }
     }
 

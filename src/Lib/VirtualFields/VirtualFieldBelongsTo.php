@@ -11,39 +11,40 @@ use Mapper\Workers\MapperModel;
 class VirtualFieldBelongsTo extends VirtualField
 {
 
-	public static function getType(): string
-	{
-		return 'belongsTo';
-	}
+    public static function getType(): string
+    {
+        return 'belongsTo';
+    }
 
-	public function getFkCol(): string
-	{
-		return $this->relatedFK->getForeignColumns()[0];
-	}
-	public function getSetMethodData()
-	{
-		$setData = parent::getSetMethodData();
-		$arg = $this->getRelationshipName();
-		if($this->hasReferClass()) {
-			$model = $this->getReferredClassName();
-			$setData['args'] = $model.' $'.$arg;
-		}
-		$setData['name'] = $this->makeAMethodName(self::PREFIX_SET_METHODS);
-		return $setData;
-	}
+    public function getFkCol(): string
+    {
+        return $this->relatedFK->getForeignColumns()[0];
+    }
 
-	public function getGetMethodData()
-	{
-		$getData = parent::getGetMethodData();
-		if($this->hasReferClass()) {
-			$getData['type'] = $this->getReferredClassName();
-			if($getData['nullable']) {
-				$getData['type'] .= '|null';
-			}
-		}
-		$getData['name'] = $this->makeAMethodName(self::PREFIX_GET_METHODS);
-		return $getData;
-	}
+    public function getSetMethodData()
+    {
+        $setData = parent::getSetMethodData();
+        $arg = $this->getRelationshipName();
+        if ($this->hasReferClass()) {
+            $model = $this->getReferredClassName();
+            $setData['args'] = $model . ' $' . $arg;
+        }
+        $setData['name'] = $this->makeAMethodName(self::PREFIX_SET_METHODS);
+        return $setData;
+    }
+
+    public function getGetMethodData()
+    {
+        $getData = parent::getGetMethodData();
+        if ($this->hasReferClass()) {
+            $getData['type'] = $this->getReferredClassName();
+            if ($getData['nullable']) {
+                $getData['type'] .= '|null';
+            }
+        }
+        $getData['name'] = $this->makeAMethodName(self::PREFIX_GET_METHODS);
+        return $getData;
+    }
 
     protected static function formatNameToMethod(string $name)
     {
@@ -56,7 +57,7 @@ class VirtualFieldBelongsTo extends VirtualField
      */
     public function getRelationshipName(): string
     {
-        if($this->customRelName) {
+        if ($this->customRelName) {
             return $this->customRelName;
         } else {
             /** @var MapperModel $className */

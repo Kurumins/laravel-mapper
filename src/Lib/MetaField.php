@@ -41,7 +41,7 @@ class MetaField
      * @param Column $column
      * @return self
      */
-    public function setDoctrineColunm(Column $column):self
+    public function setDoctrineColunm(Column $column): self
     {
         $this->column = $column;
         return $this;
@@ -50,8 +50,8 @@ class MetaField
 
     public function getSetMethodData()
     {
-        $args = $this->getPhpFieldType().' $'.$this->getPhpAttributeName();
-        if(!$this->column->getNotnull()) {
+        $args = $this->getPhpFieldType() . ' $' . $this->getPhpAttributeName();
+        if (!$this->column->getNotnull()) {
             $args .= ' = null';
         }
         $name = $this->makeAMethodName(self::PREFIX_SET_METHODS);
@@ -68,7 +68,7 @@ class MetaField
     {
         $name = $this->makeAMethodName(self::PREFIX_GET_METHODS);
         $returnType = $this->getPhpFieldType();
-        if(!$this->column->getNotnull()) {
+        if (!$this->column->getNotnull()) {
             $returnType .= '|null';
         }
 
@@ -99,11 +99,11 @@ class MetaField
 
     protected function getMethodModePrefix($mode)
     {
-        if($mode === self::PREFIX_GET_METHODS) {
-			/**
-			 * @todo turn it customizable
-			 */
-            if($this->getPhpFieldType() === 'bool') {
+        if ($mode === self::PREFIX_GET_METHODS) {
+            /**
+             * @todo turn it customizable
+             */
+            if ($this->getPhpFieldType() === 'bool') {
                 return 'is';
             }
             return 'get';
@@ -164,14 +164,16 @@ class MetaField
         return Str::camel($this->getFieldName());
     }
 
-    public function getClassDependencies() :?string
-	{
-		if($this->getPhpFieldType() === 'Carbon') {
-			return Carbon::class;
-		} else return null;
-	}
+    public function getClassDependencies(): ?string
+    {
+        if ($this->getPhpFieldType() === 'Carbon') {
+            return Carbon::class;
+        } else {
+            return null;
+        }
+    }
 
-    public function getRelationshipDefinition():?array
+    public function getRelationshipDefinition(): ?array
     {
         return null;
     }

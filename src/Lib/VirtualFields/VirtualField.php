@@ -14,7 +14,7 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint as Fk;
 use Doctrine\DBAL\Schema\Column;
 use Mapper\Workers\MapperModel;
 
-abstract class VirtualField extends  MetaField
+abstract class VirtualField extends MetaField
 {
     /**
      * @var MetaTable
@@ -61,14 +61,14 @@ abstract class VirtualField extends  MetaField
     public function getSetMethodData()
     {
         $setData = parent::getSetMethodData();
-        $setData['target'] = MapperModel::RELATIONSHIP_PREFIX.$this->getRelationshipName();
+        $setData['target'] = MapperModel::RELATIONSHIP_PREFIX . $this->getRelationshipName();
         return $setData;
     }
 
     public function getGetMethodData()
     {
         $getData = parent::getGetMethodData();
-        $getData['target'] = MapperModel::RELATIONSHIP_PREFIX.$this->getRelationshipName();
+        $getData['target'] = MapperModel::RELATIONSHIP_PREFIX . $this->getRelationshipName();
         return $getData;
     }
 
@@ -88,7 +88,7 @@ abstract class VirtualField extends  MetaField
 
     public function getRelationshipName(): string
     {
-        if($this->customRelName) {
+        if ($this->customRelName) {
             return $this->customRelName;
         } else {
             return $this->getFieldName();
@@ -96,34 +96,35 @@ abstract class VirtualField extends  MetaField
     }
 
 
-	public function getRelationshipDefinition():?array
-	{
-		return [
-		  $this->getRelationshipName() => [
-			'table' => $this->referredTable->getTableName(),
-			'rel' => static::getType(),
-			'local_col' => $this->getFieldName(),
-			'foreign_col' => $this->getFkCol()
-		  ]
-		];
-	}
+    public function getRelationshipDefinition(): ?array
+    {
+        return [
+            $this->getRelationshipName() => [
+                'table' => $this->referredTable->getTableName(),
+                'rel' => static::getType(),
+                'local_col' => $this->getFieldName(),
+                'foreign_col' => $this->getFkCol()
+            ]
+        ];
+    }
 
 
-	/**
-	 * @return string
-	 */
-	protected function getReferredClassName()
-	{
-		return substr($this->referredClass, strrpos($this->referredClass, '\\') + 1);
-	}
+    /**
+     * @return string
+     */
+    protected function getReferredClassName()
+    {
+        return substr($this->referredClass, strrpos($this->referredClass, '\\') + 1);
+    }
 
-	public function getClassDependencies() :?string
-	{
-		if($this->hasReferClass()) {
-			return $this->getReferredClass();
-		} else
-			return null;
-	}
+    public function getClassDependencies(): ?string
+    {
+        if ($this->hasReferClass()) {
+            return $this->getReferredClass();
+        } else {
+            return null;
+        }
+    }
 
     /**
      * Translate the name of the attribute to a method name

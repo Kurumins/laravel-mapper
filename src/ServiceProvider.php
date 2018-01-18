@@ -22,16 +22,16 @@ class ServiceProvider extends SP
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/Templates/mapper_config.php' => config_path('mapper.php'),
+                __DIR__ . '/Templates/mapper_config.php' => config_path('mapper.php'),
             ], 'mapper');
 
             $this->commands([
                 GeneratorCommand::class,
             ]);
         }
-        if(file_exists(config('mapper.path_map'))) {
-			MapperModel::loadMap(require (config('mapper.path_map')));
-		}
+        if (file_exists(config('mapper.path_map'))) {
+            MapperModel::loadMap(require(config('mapper.path_map')));
+        }
     }
 
     /**
@@ -51,7 +51,7 @@ class ServiceProvider extends SP
      */
     protected function registerModelFactory()
     {
-        if(config('mapper')) {
+        if (config('mapper')) {
             $this->app->singleton(Customize::class, function ($app) {
                 return new Customize(
                     $app->make('db'), config('mapper')
