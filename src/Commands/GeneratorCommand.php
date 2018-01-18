@@ -6,6 +6,11 @@ use Mapper\Customize;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Helper\Table;
 
+/**
+ * Creates the DB maps and the model trats
+ *
+ * @package Mapper\Commands
+ */
 class GeneratorCommand extends Command
 {
     /**
@@ -13,7 +18,7 @@ class GeneratorCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'mapper:generate {--t|table= : The name of the table}';
+    protected $signature = 'mapper:generate';
 
     /**
      * The console command description.
@@ -47,7 +52,6 @@ class GeneratorCommand extends Command
         try {
             $this->comment("Generating models in " . config('mapper.path'));
             $this->customizer->map();
-            echo "\n\n\n---ARRRRMAIR.";
             $this->comment("Db mapped");
             $table = new Table($this->output);
             $table->setHeaders(['Table', 'Trait', 'Path']);
@@ -62,7 +66,6 @@ class GeneratorCommand extends Command
                 } else {
                     $table->addRow([$tableName, '', '-- No model defined --']);
                 }
-
             }
             $this->customizer->saveMapFile(config('mapper.path_map'));
             $this->comment("Class map save at " . config('mapper.path_map'));
@@ -72,14 +75,5 @@ class GeneratorCommand extends Command
             $this->error("Sorry: " . $e->getMessage());
             $this->error($e->getFile() . ':' . $e->getLine());
         }
-    }
-
-
-    /**
-     * @return string
-     */
-    protected function getTable()
-    {
-        return $this->option('table');
     }
 }
