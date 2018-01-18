@@ -151,13 +151,13 @@ class Customize
 
 
                 if ($modelName) {
-                    $specializedField[] = $fieldName;
                     $this->addLocalVirtualField($metaTable, $fieldName, $fk, in_array($fieldName, $uniqueFields));
                 }
 
                 $relName = $this->searchForCustomRelNames($metaTable->getTableName(), $fieldName, $metaTable);
                 $this->customRelNames[$metaTable->getTableName()][$fieldName] = $relName;
                 if ($referencedModelName) {
+                    $specializedField[] = $fieldName;
                     $this->addReferVirtualField($metaTable, $fieldName, $fk);
                 }
             }
