@@ -2,23 +2,22 @@
 
 namespace Tests;
 use Illuminate\Database\Capsule\Manager;
-use PDO;
 use PDOException;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var Manager
+     * @var \Illuminate\Database\DatabaseManager
      */
     private $db;
 
+    /**
+     * @inheritdoc
+     */
     public function setup()
     {
         parent::setUp();
         try {
-//            $pdo = new PDO('mysql:dbname='.env('DB_NAME').';host='.env('DB_HOST'), env('DB_USER'), env('DB_PASS'));
-//            $this->db = new MySqlConnection($pdo, env('DB_USER'), env('DB_PASS'));
-
             $capsule = new Manager;
             $capsule->addConnection([
              'driver' => 'mysql',
@@ -31,15 +30,33 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             $capsule->bootEloquent();
             $this->db = $capsule->getDatabaseManager();
         } catch (PDOException $e) {
-            echo 'Connection failed: ' . $e->getMessage();
+            exit('Connection failed: ' . $e->getMessage());
         }
+        $this->resetDb();
     }
 
     /**
-     * @return Manager
+     * @return \Illuminate\Database\DatabaseManager
      */
     public function getConnection(){
         return $this->db;
+    }
+
+    /**
+     * Delete all previous table in the DB and creates a fresh test db.
+     *
+     * @return void
+     */
+    private function resetDb()
+    {
+        $this->db->statement('SET FOREIGN_KEY_CHECKS=0;');
+        foreach ($this->db->select('SHOW TABLES') as $table) {
+            $tableList = get_object_vars($table);
+            $this->db->delete('DROP TABLE ' . $tableList[key($tableList)]);
+        }
+        $this->db->statement('SET FOREIGN_KEY_CHECKS=1;');
+        $command = "mysql -u " . env('DB_USER') . " -p" . env('DB_PASS') . " " . env('DB_NAME') . " < " . __DIR__ . '/db-test.sql';
+        `$command`;
     }
 }
 
